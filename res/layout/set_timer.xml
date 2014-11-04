@@ -76,6 +76,7 @@
         android:background="#B8B8B8"  
         android:visibility="visible" />
 	<LinearLayout
+	    	android:id="@id/timer_on_off_setting_view"
 	    	android:orientation="horizontal" 
 		    android:layout_width="fill_parent" 
 		    android:layout_height="60dp">
@@ -105,6 +106,7 @@
         android:background="#B8B8B8"  
         android:visibility="visible" />
 	<FrameLayout
+	        android:id="@+id/timer_setting_status_view"
 	    	android:orientation="horizontal" 
 		    android:layout_width="fill_parent" 
 		    android:layout_height="60dp">
@@ -140,6 +142,7 @@
         android:background="#B8B8B8"  
         android:visibility="visible" />
 	<FrameLayout
+	        android:id="@+id/timer_setting_view"
 	    	android:orientation="horizontal" 
 		    android:layout_width="fill_parent" 
 		    android:layout_height="fill_parent">
