@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF" >
+    
+ 	<FrameLayout
+	    android:orientation="horizontal" 
+	    android:layout_width="fill_parent" 
+	    android:layout_height="60dp"
+	    android:background="#ff0000">
+	   
+	     <Button android:id="@+id/bt_back_to_switch_list"
+	            android:layout_width="18dp"
+	            android:layout_height="30dp"
+	            android:layout_marginLeft="10dp"
+	            android:layout_gravity="center_vertical" 
+	            android:background="@drawable/left_arraw"/>
+	     <TextView 
+	         	android:id="@+id/tv_back_to_switch_list"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textColor="#FFFFFFFF"
+	            android:textSize="25sp" 
+	            android:text="返回"
+	            android:layout_marginLeft="35dp"
+	            android:layout_gravity="center_vertical"/>       
+
+	     <ImageView 
+	            android:layout_width="40dp"
+	            android:layout_height="45dp"
+	            android:layout_gravity="center"
+	            android:src="@drawable/switch_timer_selected"/>       
+	     <TextView 
+	         	android:id="@+id/save_timer_setting"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textColor="#FFFFFFFF"
+	            android:textSize="25sp" 
+	            android:text="保存"
+	            android:layout_marginRight="10dp"
+	            android:layout_gravity="center_vertical|right"/>       
+    </FrameLayout>
+    <View  
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"  
+        android:background="#B8B8B8"  
+        android:visibility="visible" />  
+	<FrameLayout
+	    	android:orientation="horizontal" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="60dp">
+	       <TextView 
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_marginLeft="10dp"
+		            android:layout_gravity="center_vertical|left"
+		            android:text="定时器设置" 
+		            android:textColor = "#000000"
+		            android:textSize="20sp"
+		            
+		            />
+	       <Button android:id="@+id/switch_timer_enable"
+		            android:layout_width="50dp"
+		            android:layout_height="31dp"
+		            android:layout_marginRight="10dp"
+		        	android:background = "@drawable/switch_off"
+		            android:layout_gravity="center_vertical|right" 
+		            />
+	       
+	</FrameLayout>
+	    <View  
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"  
+        android:background="#B8B8B8"  
+        android:visibility="visible" />
+	<LinearLayout
+	    	android:orientation="horizontal" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="60dp">
+	       <Button android:id="@+id/switch_on_timer"
+		            android:layout_width="fill_parent"
+		            android:layout_height="41dp"
+		            android:layout_marginLeft="10dp"
+		            android:text="定时开"
+		            android:textSize="20dp"
+		            android:layout_weight="1"
+		            android:layout_gravity="center_vertical"
+		            />
+	       <Button android:id="@+id/switch_off_timer"
+		            android:layout_width="fill_parent"
+		            android:layout_height="41dp"
+		            android:layout_marginRight="10dp"
+		            android:text="定时关"
+		             android:textSize="20dp"
+		            android:layout_weight="1"
+		            android:layout_gravity="center_vertical"
+		            />
+	       
+	</LinearLayout>
+    <View  
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"  
+        android:background="#B8B8B8"  
+        android:visibility="visible" />
+	<FrameLayout
+	    	android:orientation="horizontal" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="60dp">
+	       <TextView android:id="@+id/switch_timer_status"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:layout_marginLeft="10dp"
+		            android:text="定时器开"
+		            android:textSize="20sp"
+		            android:textColor="#000000"
+		            android:layout_gravity="center_vertical|left" 
+		            />
+	       <TextView android:id="@+id/switch_timer_time"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:text="15:30"
+		            android:textSize="20sp"
+		            android:textColor="#000000"
+		            android:layout_gravity="center" 
+		            />
+	        <Button android:id="@+id/enable_light_on_off"
+		            android:layout_width="50dp"
+		            android:layout_height="31dp"
+		            android:layout_marginRight="10dp"
+		            android:layout_gravity="center_vertical|right" 
+		            android:background="@drawable/switch_on"
+		            /> 
+	       
+	</FrameLayout>
+    <View  
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"  
+        android:background="#B8B8B8"  
+        android:visibility="visible" />
+	<FrameLayout
+	    	android:orientation="horizontal" 
+		    android:layout_width="fill_parent" 
+		    android:layout_height="fill_parent">
+	        			
+		<FrameLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:layout_marginLeft="20dp"
+			android:layout_marginTop="20dp">
+		
+		<CheckBox android:text="周日" 
+		    android:id="@+id/CheckBox01" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"	 		  
+		    /> 
+		<CheckBox android:text="周一" 
+		    android:id="@+id/CheckBox02" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="40dp" /> 
+		<CheckBox android:text="周二" 
+		    android:id="@+id/CheckBox03" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="80dp"/>
+		<CheckBox android:text="周三" 
+		    android:id="@+id/CheckBox04" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="120dp"/>
+		<CheckBox android:text="周四" 
+		    android:id="@+id/CheckBox05" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="160dp"/> 
+		<CheckBox android:text="周五" 
+		    android:id="@+id/CheckBox06" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="200dp"/> 
+		<CheckBox android:text="周六" 
+		    android:id="@+id/CheckBox07" 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="30dp"
+		    android:textSize="20sp"
+		    android:textColor="#000000"
+		    android:layout_marginTop="240dp"/> 		
+		</FrameLayout>  
+	
+		<LinearLayout 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content"
+		    android:orientation="vertical"
+		    android:layout_marginTop="30dp"
+		    android:layout_marginRight="130dp"
+		    android:layout_gravity="right">
+		    
+		    <TextView
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:text="小时"
+		        android:textColor="#000000"
+		        android:textSize="20sp"
+		        android:layout_gravity="center_horizontal"
+		        />
+		    <kankan.wheel.widget.WheelView android:id="@+id/hours"
+			android:layout_height="200dp"
+			android:layout_width="70dp"
+			android:layout_marginTop="15dp"/>
+		</LinearLayout>
+	    
+		<LinearLayout 
+		    android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content"
+		    android:orientation="vertical"
+		    android:layout_marginTop="30dp"
+		    android:layout_marginRight="40dp"
+		    android:layout_gravity="right">
+		    
+		    <TextView
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:text="分钟"
+		        android:textColor="#000000"
+		        android:textSize="20sp"
+		        android:layout_gravity="center_horizontal"
+		        />
+			<kankan.wheel.widget.WheelView android:id="@+id/minutes"
+			android:layout_height="200dp"
+			android:layout_width="70dp"
+			android:layout_marginTop="15dp"
+			/>
+		</LinearLayout>
+		
+	</FrameLayout>
+
+
+
+
+</LinearLayout>

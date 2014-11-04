@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+ 
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="60dp"
+    android:minHeight="?android:attr/listPreferredItemHeight">
+  
+    <ImageView android:id="@+id/switch_on_off_description" 
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_margin="10dp"
+        android:src="@drawable/switch_on_des"
+        android:layout_gravity="center_vertical|left"/>
+  
+ 	<TextView android:id="@+id/switch_name" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content"
+        android:text="左壁灯"
+        android:textSize="25sp"
+        android:textColor="#000000"
+        android:layout_marginLeft="75dp" 
+        android:layout_gravity="center_vertical"/>
+ 
+     <Button android:id="@+id/settimer" 
+        android:layout_width="40dp" 
+        android:layout_height="45dp"
+        android:focusable="false"
+        android:layout_marginRight= "90dp"
+        android:background="@drawable/switch_timer_selected"
+        android:layout_gravity="center_vertical|right" />
+ 
+     <Button android:id="@+id/switc_action" 
+        android:layout_width="65dp" 
+        android:layout_height="37dp"
+        android:focusable="false"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/switch_off"
+        android:layout_gravity="center_vertical|right"/>
+    
+</FrameLayout> 
