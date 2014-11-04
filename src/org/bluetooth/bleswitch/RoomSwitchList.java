@@ -50,7 +50,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    static int SET_NOTIFY_ENABLE = 3;
 	    static int SET_SWITCH_ONOFF = 2;
 	    static int REQUEST_TIMER_SETTING = 5;
-	    static int REQUEST_PWD = 6;
+	    static int CHANGE_PWD = 6;
 	    static int SET_PWD= 7;
 	    static int currentSetSwitch = -1;
 	    MyAdapter adapter;
@@ -344,7 +344,9 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		
 	
 	    private String inputOldPwd;
+	    private String oldPassword;
 	    private String inputNewPwd;
+	    private String newPassword;
 		@Override
 		protected void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
@@ -387,7 +389,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	
 						EditText et = (EditText)changeView.findViewById(R.id.change_name);	
 						String str = et.getText().toString();
-						inputOldPwd = str;
+						oldPassword = inputOldPwd = str;
 						
 						byte[] requestpwd = new byte[]{(byte) 0xFA,(byte) 0xF5,0x07,0x24,
 								 0x00,0x00,(byte) 0xA3,(byte)1,(byte) 0x00,0x0D};
@@ -398,7 +400,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						}
 						requestpwd[8] = (byte)checksum;
 						Log.v("checksum = "+ checksum,"mike");
-						status = REQUEST_PWD;
+						status = CHANGE_PWD;
 						mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestpwd);
 					}
 					})
@@ -775,45 +777,50 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    						""+(0x0f&(l>>4))+""+(0x0f&l);
 		    		Log.v("old pwd is "+ strpwd,"mike");
 		    		
-		    		if(strpwd.compareTo(inputOldPwd)== 0)
+		    		if(strpwd.compareTo(inputOldPwd)== 0 && status == CHANGE_PWD)
 		    		{
-		    			
+		    			LayoutInflater factory = LayoutInflater.from(RoomSwitchList.this);
+						final View changeView = factory.inflate(R.layout.change_device_name, null);
+						new AlertDialog.Builder(RoomSwitchList.this)//弹出登陆对话框
+						.setTitle("请输入新密码")
+						.setView(changeView)
+						.setPositiveButton("确定", new DialogInterface.OnClickListener(){
+						public void onClick(DialogInterface dialog,int whichButton){
+							//跳转至注册
+
+							EditText et = (EditText)changeView.findViewById(R.id.change_name);	
+							String str = et.getText().toString();
+							inputOldPwd = str;
+							
+							byte[] setpwd = new byte[]{0xFA,0xF5,0x07,0x21,	AA,BB,CC,DD,	KK	0d,};
+							int checksum = 0;
+							for(int i = 0;i<requestpwd.length-4;i++)
+							{
+								checksum = checksum + requestpwd[i+2];
+							}
+							requestpwd[8] = (byte)checksum;
+							Log.v("checksum = "+ checksum,"mike");
+							status = SET_PWD;
+							mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestpwd);
+						}
+						})
+						.setNegativeButton("取消", null)
+						.show();
 		    		}
 		    		
 		    	}
 		    }
 		    
-		    void popupInputOldDialog()
+		    void stringToBCD(String s)
 		    {
-		    	LayoutInflater factory = LayoutInflater.from(RoomSwitchList.this);
-				final View changeView = factory.inflate(R.layout.change_device_name, null);
-				new AlertDialog.Builder(RoomSwitchList.this)//弹出登陆对话框
-				.setTitle("旧密码")
-				.setView(changeView)
-				.setPositiveButton("确定", new DialogInterface.OnClickListener(){
-				public void onClick(DialogInterface dialog,int whichButton){
-					//跳转至注册
-
-					EditText et = (EditText)changeView.findViewById(R.id.change_name);	
-					String str = et.getText().toString();
-					inputOldPwd = str;
-					
-					byte[] requestpwd = new byte[]{(byte) 0xFA,(byte) 0xF5,0x07,0x24,
-							 0x00,0x00,(byte) 0xA3,(byte)1,(byte) 0x00,0x0D};
-					int checksum = 0;
-					for(int i = 0;i<requestpwd.length-4;i++)
-					{
-						checksum = checksum + requestpwd[i+2];
-					}
-					requestpwd[8] = (byte)checksum;
-					Log.v("checksum = "+ checksum,"mike");
-					status = REQUEST_PWD;
-					mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestpwd);
-				}
-				})
-				.setNegativeButton("取消", null)
-				.show();
+		    	byte[] org = s.getBytes("UTF-8");
+		    	byte[] out = new byte[2];
+		    	for(int i = 0;i<org.length;i++)
+		    	{
+		    		
+		    	}
 		    }
+		
 		    @Override  
 		    protected void onActivityResult(int requestCode, int resultCode, Intent data)  
 		    {  
