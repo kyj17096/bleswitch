@@ -22,25 +22,23 @@ import android.widget.TextView;
 
 public class SetSwitchTimer extends Activity implements OnClickListener{
 	Button btBack,btEnableTimer,btOnTime,btOffTime, btTimerOnOffEnable;
-	TextView tvBack,btSave,tvTimeValue;
+	TextView tvBack,btSave,tvTimeValue,tvChoose;
 	int shooseVaue;
 	CheckBox[] cb;
-	boolean isPressLightOnTimerBt = false;
-	boolean isPressLightOffTimerBt = false;
-	int lightOnHour = -1;
-	int lightOffHour = -1;
-	int lightOnMinutes = -1;
-	int lightOffMinutes = -1;
 	
-	int orgLightOnHour = -1;
-	int orgLightOffHour = -1;
-	int orgLightOnMinutes = -1;
-	int orgLightOffMinutes = -1;
-	boolean lightOnEnable = false;
-	boolean lightOffEnable = false;
-	boolean enableTimer = false;
+	boolean timerGlobalEnable = false;
+	boolean enableLightOnTimer = false;
+	boolean enableLightOffTimer = false;
 	
-	View v1,v2,v3;
+	int lightOnHour = 0;
+	int lightOnMinutes = 0;
+	int lightOffHour = 0;
+	int lightOffMinutes = 0;	
+	
+	boolean isLightOnPress = false;
+	boolean isLightOffPress = false;
+	byte weekBit;
+	View v1,v2,v3,v4;
 	public static Handler mHandler;
 	int switchIndex = -1;
 	public final static int GET_TIMER_RESPONSE = 1;
@@ -67,10 +65,12 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		 tvTimeValue = (TextView)findViewById(R.id.switch_timer_time);
 		 btTimerOnOffEnable= (Button)findViewById(R.id.enable_light_on_off);
 		 btTimerOnOffEnable.setOnClickListener(this);
+		 tvChoose = (TextView)findViewById(R.id.switch_timer_status);
+		 
 		 v1 = (View)findViewById(R.id.timer_v1);
 		 v2 = (View)findViewById(R.id.timer_v2);
 		 v3 = (View)findViewById(R.id.timer_v3);
-		 
+		 v4 = (View)findViewById(R.id.timer_v4);
 		 
 		 
 		
@@ -93,74 +93,105 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 			case GET_TIMER_RESPONSE:
 				byte[] d = (byte[])msg.obj;
 				int len = msg.arg1;
-				lightWeekBit = d[6];
+				weekBit = d[6];
 				switchIndex = 0x0ff&d[5];
-				orgLightOnHour = 0x0ff&d[8];
-				orgLightOnMinutes = 0x0ff&d[7];
-				orgLightOffHour = 0x0ff&d[10];				
-				orgLightOffMinutes = 0x0ff&d[9];
-				
-				if((orgLightOnHour > 23&& orgLightOffHour>23)||(orgLightOnMinutes>59&&orgLightOnMinutes>59))
+				lastOnH = lightOnHour = 0x0ff&d[8];
+				lastOnM = lightOnMinutes = 0x0ff&d[7];
+				lastOffH =lightOffHour = 0x0ff&d[10];				
+				lastOffM = lightOffMinutes = 0x0ff&d[9];
+				if((0x0ff&weekBit) == 0x0ff)
 				{
-					updateStatus();
-					return;
+					disableGlobalTimer();
+					break;
 				}
-				
-				if(orgLightOnHour <24 && orgLightOnMinutes <60)
-				{
-					lightOnEnable = true;
-					//btOnTime.setPressed(true);
-					
-					 
-					 hours = orgLightOnHour;
-					 mintus = orgLightOnMinutes;
-					 updateStatus();
-					 btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
-				}
-				
-				if(orgLightOffHour <24 && orgLightOffMinutes <60)
-				{
-					lightOffEnable = true;
-					//btOffTime.setPressed(true);
-					 hours = orgLightOffHour;
-					 mintus = orgLightOffMinutes;
-					 updateStatus();
-					 btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
-				}
-				wheelH.setCurrentItem(hours);
-				wheelM.setCurrentItem(mintus);
-				for(int i = 0;i<7;i++)
-				{
-					if((lightWeekBit & (0x01<<i))>0)
-						cb[i].setChecked(true);
-				}
-				if((lightWeekBit&0x0ff) == 0)
-					btEnableTimer.setBackgroundResource(R.drawable.switch_off);
 				else
-					btEnableTimer.setBackgroundResource(R.drawable.switch_on);
+				{
+					enableGlobalTimer();									
+				}
 				
 				
+				if(timerGlobalEnable == true && enableLightOnTimer == true)
+				{
+					
+					isLightOnPress = true;
+						wheelH.setCurrentItem(lightOnHour);
+						wheelM.setCurrentItem(lightOnMinutes);					
+						tvTimeValue.setText(String.format("%02d",lightOnHour)+":"+String.format("%02d",lightOnMinutes));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+					
+						
+					
+				}
+				else if(timerGlobalEnable == true && enableLightOnTimer == false)
+				{
+					isLightOnPress = true;
+					wheelH.setCurrentItem(0);
+					wheelM.setCurrentItem(0);					
+					tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
+					btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+					
+					
+				}
+								
 				break;
 			}
 		}};
-		
-		switchIndex = switchIndex+1;
-		byte[] requestRoomSwitchQuantity = new byte[]{(byte) 0xFA,(byte) 0xF5,0x07,0x24,
-				 0x00,0x00,(byte) 0xA1,(byte)switchIndex,(byte) 0xCC,0x0D};
-		int checksum = 0;
-		for(int i = 0;i<requestRoomSwitchQuantity.length-4;i++)
-		{
-			checksum = checksum + requestRoomSwitchQuantity[i+2];
-		}
-		requestRoomSwitchQuantity[8] = (byte)checksum;
-		Log.v("checksum is "+ (0x0ff&checksum),"mike request");
 		RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
-		RoomSwitchList.mBleWrapper.writeDataToCharacteristic(RoomSwitchList.currentSetCharacteristic,
-				requestRoomSwitchQuantity);
+
+		SwitchUtils.requestTimerSetting(RoomSwitchList.mBleWrapper,RoomSwitchList.currentSetCharacteristic,RoomSwitchList.currentPassword);
 	}
 	
 	
-	
+	public void disableGlobalTimer()
+	{
+		timerGlobalEnable = false;
+		v1.setVisibility(View.GONE);
+		v2.setVisibility(View.GONE);
+		v3.setVisibility(View.GONE);
+		v4.setVisibility(View.GONE);
+		btEnableTimer.setBackgroundResource(R.drawable.switch_off);
+	}
+	public void enableGlobalTimer()
+	{
+		timerGlobalEnable = true;
+		v1.setVisibility(View.VISIBLE);
+		v2.setVisibility(View.VISIBLE);
+		v3.setVisibility(View.VISIBLE);
+		v4.setVisibility(View.VISIBLE);
+		
+		if((0x0ff&lastOnH) == 0x0ff)
+		{
+			enableLightOnTimer = false;
+		}
+		else
+		{
+			enableLightOnTimer = true;
+			hours = lightOnHour;
+			mintus = lightOnMinutes;
+			updateStatus();
+		}
+		
+		if((0x0ff&lastOffH) == 0x0ff)
+		{
+			enableLightOffTimer = false;
+		}
+		else
+		{
+			hours = lightOffHour;
+			mintus = lightOffMinutes;
+			enableLightOffTimer = true;
+			updateStatus();
+		}
+		for(int i =0;i<7;i++)
+		{
+			if((weekBit&(0x01<<i)) != 0)
+			{
+				cb[i].setChecked(true);
+			}
+		}
+		btEnableTimer.setBackgroundResource(R.drawable.switch_on);
+	}
+
 	boolean wheelScrolled = false;
 	int hours = 0;
 	 WheelView wheelH;
@@ -228,26 +259,28 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 	    // Wheel scrolled listener
 	   // OnWheelScrollListener scrolledListener =;
 	    
+	   public void updateStatus()
+	   {
+		   tvTimeValue.setText(String.format("%02d",hours)+":"+String.format("%02d",mintus));
+		   if(isLightOnPress == true)
+		   {
+			   lightOnHour = hours;
+			   lightOnMinutes = mintus;
+			   Log.v("lightOnHour = "+lightOnHour+"lightOnMinutes="+lightOnMinutes,"mike");
+		   }
+		   else
+		   {
+			   lightOffHour = hours;
+			   lightOffMinutes = mintus;
+			   Log.v("lightOffHour = "+lightOffHour+"lightOffMinutes="+lightOffMinutes,"mike");
+		   }
+	   }
 	    
-	    
-
-	    byte lightWeekBit = 0;
-	    void updateStatus()
-	    {
-	    	tvTimeValue.setText(String.format("%02d",hours)+":"+String.format("%02d",mintus));
-	    	if(isPressLightOffTimerBt)
-			{
-				lightOffHour = hours;
-				lightOffMinutes = mintus;
-			}
-
-			if(isPressLightOnTimerBt)
-			{
-				lightOnHour = hours;
-				lightOnMinutes = mintus;
-			}
-			
-	    }
+	   
+	   int lastOnH = 0;
+	   int lastOnM = 0;
+	   int lastOffH = 0;
+	   int lastOffM = 0;
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
@@ -259,71 +292,147 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				break;
 			case R.id.save_timer_setting:
 				saveWeekBit();
-				
-				Intent mIntent = new Intent();  
-		        mIntent.putExtra("lightWeekBit", lightWeekBit);  
-		        mIntent.putExtra("lightOffHour", lightOffHour);  
-		        mIntent.putExtra("lightOnHour", lightOnHour);  
-		        mIntent.putExtra("lightOnMinutes", lightOnMinutes);  
-		        mIntent.putExtra("lightOffMinutes", lightOffMinutes); 
+				if(isLightOnPress)
+				{
+					lastOnH = lightOnHour;
+	                lastOnM = lightOnMinutes;
+				}
+				else
+				{
+	                lastOffH = lightOffHour;
+	                lastOffM = lightOffMinutes;
+				}
+				Intent mIntent = new Intent(); 
+				if(timerGlobalEnable == false)
+					weekBit = (byte) 0xff;
+				if(!enableLightOnTimer)
+				{
+					lastOnH = 0xff;
+				}
+				if(!enableLightOffTimer)
+				{
+					lastOffH = 0xff;
+				}
+				 Log.v("weekbit+"+weekBit+" lighoffh"+lightOffHour+"loffm"+lightOffMinutes
+			        		+"lonh"+lightOnHour+"lonm "+lightOnMinutes,"mike");
+		        mIntent.putExtra("lightWeekBit", weekBit);  
+		        mIntent.putExtra("lightOffHour", lastOffH);  
+		        mIntent.putExtra("lightOnHour", lastOnH);  
+		        mIntent.putExtra("lightOnMinutes", lastOnM);  
+		        mIntent.putExtra("lightOffMinutes", lastOffM); 
 		        mIntent.putExtra("switch_index", switchIndex); 
+		        
+		       
 		        // 设置结果，并进行传送  
 		        this.setResult(0, mIntent); 
 		        this.finish();
 				
 				break;
 			case R.id.switch_on_timer:
-				//saveOffStatus();
-				//saveWeekBit();
-				btOnTime.setPressed(true);
-				isPressLightOnTimerBt = true;
-				wheelH.setCurrentItem(orgLightOnHour);
-				wheelM.setCurrentItem(orgLightOnMinutes);
-				isPressLightOffTimerBt = false;
+				isLightOnPress = true;
+                lastOffH = lightOffHour;
+                lastOffM = lightOffMinutes;
+				wheelH.setCurrentItem(lastOnH);
+				wheelM.setCurrentItem(lastOnM);
+				isLightOffPress = false;
+				String status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_on_setting);
+				tvChoose.setText(status);
+				   Log.v("lastOffH = "+lastOffH+"lastOffM="+lastOffM,"mike");
+				   
+				   if(enableLightOnTimer == true)
+					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+				   else
+					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 				break;
 				
 			case R.id.switch_off_timer:
-				//saveOnStatus();
-				//saveWeekBit();
-				btOffTime.setPressed(true);
-				isPressLightOffTimerBt = true;
-				wheelH.setCurrentItem(orgLightOffHour);
-				wheelM.setCurrentItem(orgLightOffMinutes);
-				isPressLightOnTimerBt = false;
+				   lastOnH = lightOnHour;
+	                lastOnM = lightOnMinutes;
+				isLightOffPress = true;
+				wheelH.setCurrentItem(lastOffH);
+				wheelM.setCurrentItem(lastOffM);
+				isLightOnPress = false;
+				status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_off_setting);
+				tvChoose.setText(status);
+				Log.v("lastOnH = "+lastOnH+"lastOnM="+lastOnM,"mike");
+				 if(enableLightOffTimer == true)
+					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+				   else
+					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 				break;
 			case R.id.switch_timer_enable:
-				if(enableTimer)
+				
+				if(timerGlobalEnable == true)
 				{
-					enableTimer = false;
-					btEnableTimer.setBackgroundResource(R.drawable.switch_off);
-					v1.setVisibility(View.GONE);
-					v2.setVisibility(View.GONE);
-					v3.setVisibility(View.GONE);
+					timerGlobalEnable = false;
+					disableGlobalTimer();
+				}
+				else
+				{
+					timerGlobalEnable = true;
+					enableGlobalTimer();
+				}
+				break;
+			case R.id.enable_light_on_off:
+				Log.v("enable on off","mike ");
+				if(isLightOnPress)
+				{
+					
+					if(enableLightOnTimer == true)
+					{
+						Log.v("enable on off 1","mike ");
+						wheelH.setCurrentItem(lightOnHour);
+						wheelM.setCurrentItem(lightOnMinutes);					
+						tvTimeValue.setText(String.format("%02d",lightOnHour)+":"+String.format("%02d",lightOnMinutes));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+						enableLightOnTimer = false;
+					}
+					else
+					{
+						Log.v("enable on off 2","mike ");
+						wheelH.setCurrentItem(0);
+						wheelM.setCurrentItem(0);					
+						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+						enableLightOnTimer = true;
+					}					
 					
 				}
 					
 				else
 				{
-					enableTimer = true;
-					btEnableTimer.setBackgroundResource(R.drawable.switch_on);
-					v1.setVisibility(View.VISIBLE);
-					v2.setVisibility(View.VISIBLE);
-					v3.setVisibility(View.VISIBLE);
+					if(enableLightOffTimer == true)
+					{
+						Log.v("enable on off 3","mike ");
+						wheelH.setCurrentItem(lightOffHour);
+						wheelM.setCurrentItem(lightOffMinutes);					
+						tvTimeValue.setText(String.format("%02d",lightOffHour)+":"+String.format("%02d",lightOffMinutes));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+						enableLightOffTimer = false;
+					}
+					else
+					{
+						Log.v("enable on off 4","mike ");
+						wheelH.setCurrentItem(0);
+						wheelM.setCurrentItem(0);					
+						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+						enableLightOffTimer = true;
+					}				
 				}
 				break;
-			case R.id.enable_light_on_off:
-				
 			}
 		}
+	
 		
 
 		void saveWeekBit()
 		{
-			lightWeekBit = 0;
+			weekBit = 0;
 			for(int i = 0;i<7;i++)
 			{
 				if(cb[i].isChecked())
-					lightWeekBit = (byte) (lightWeekBit | (0x01<<i));
+					weekBit = (byte) (weekBit | (0x01<<i));
 			}
 		}
 }
