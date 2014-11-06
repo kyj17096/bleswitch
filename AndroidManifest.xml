@@ -22,7 +22,7 @@
         android:logo="@drawable/ic_launcher"
        android:theme="@android:style/Theme.NoTitleBar" >
         <activity
-            android:name="org.bluetooth.bleswitch.SwitchListActivity"
+            android:name="org.bluetooth.bleswitch.RoomListActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>

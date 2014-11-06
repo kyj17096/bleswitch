@@ -21,7 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class SetSwitchTimer extends Activity implements OnClickListener{
-	Button btBack,btEnableTimer,btOnTime,btOffTime, btTimerOnOffStatus;
+	Button btBack,btEnableTimer,btOnTime,btOffTime, btTimerOnOffEnable;
 	TextView tvBack,btSave,tvTimeValue;
 	int shooseVaue;
 	CheckBox[] cb;
@@ -40,7 +40,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 	boolean lightOffEnable = false;
 	boolean enableTimer = false;
 	
-	
+	View v1,v2,v3;
 	public static Handler mHandler;
 	int switchIndex = -1;
 	public final static int GET_TIMER_RESPONSE = 1;
@@ -62,10 +62,18 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		 btOffTime = (Button)findViewById(R.id.switch_off_timer);
 		 btOffTime.setOnClickListener(this);
 		 tvBack = (TextView)findViewById(R.id.tv_back_to_switch_list);
-		 tvBack.setOnClickListener(this);
 		 
+		 tvBack.setOnClickListener(this);
 		 tvTimeValue = (TextView)findViewById(R.id.switch_timer_time);
-		 btTimerOnOffStatus= (Button)findViewById(R.id.enable_light_on_off);
+		 btTimerOnOffEnable= (Button)findViewById(R.id.enable_light_on_off);
+		 btTimerOnOffEnable.setOnClickListener(this);
+		 v1 = (View)findViewById(R.id.timer_v1);
+		 v2 = (View)findViewById(R.id.timer_v2);
+		 v3 = (View)findViewById(R.id.timer_v3);
+		 
+		 
+		 
+		
 		 cb = new CheckBox[7];
 		 cb[0] = (CheckBox)findViewById(R.id.CheckBox01);
 		 cb[1] = (CheckBox)findViewById(R.id.CheckBox02);
@@ -107,7 +115,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					 hours = orgLightOnHour;
 					 mintus = orgLightOnMinutes;
 					 updateStatus();
-					 btTimerOnOffStatus.setBackgroundResource(R.drawable.switch_on);
+					 btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
 				}
 				
 				if(orgLightOffHour <24 && orgLightOffMinutes <60)
@@ -117,7 +125,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					 hours = orgLightOffHour;
 					 mintus = orgLightOffMinutes;
 					 updateStatus();
-					 btTimerOnOffStatus.setBackgroundResource(R.drawable.switch_off);
+					 btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 				}
 				wheelH.setCurrentItem(hours);
 				wheelM.setCurrentItem(mintus);
@@ -288,14 +296,23 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				{
 					enableTimer = false;
 					btEnableTimer.setBackgroundResource(R.drawable.switch_off);
+					v1.setVisibility(View.GONE);
+					v2.setVisibility(View.GONE);
+					v3.setVisibility(View.GONE);
+					
 				}
 					
 				else
 				{
 					enableTimer = true;
 					btEnableTimer.setBackgroundResource(R.drawable.switch_on);
+					v1.setVisibility(View.VISIBLE);
+					v2.setVisibility(View.VISIBLE);
+					v3.setVisibility(View.VISIBLE);
 				}
 				break;
+			case R.id.enable_light_on_off:
+				
 			}
 		}
 		

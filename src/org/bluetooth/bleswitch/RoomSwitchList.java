@@ -1,5 +1,6 @@
 package org.bluetooth.bleswitch;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bluetooth.bleswitch.PeripheralActivity.ListType;
-import org.bluetooth.bleswitch.SwitchListActivity.MyAdapter;
-import org.bluetooth.bleswitch.SwitchListActivity.ViewHolder;
+import org.bluetooth.bleswitch.RoomListActivity.MyAdapter;
+import org.bluetooth.bleswitch.RoomListActivity.ViewHolder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -46,16 +47,18 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    final static public UUID SWITCH_SET_CHARACTERISTIC = UUID.fromString("d44bc439-abfd-45a2-b575-925416129600");	   
 	    final static public UUID SWITCH_NOTIFY_CHARACTERISTIC = UUID.fromString("d44bc439-abfd-45a2-b575-925416129601");	   
 	    public static int status = 0;
-	    static int REQUEST_SWITCH_COUNT_AND_ONOFF_STATUS = 1;
-	    static int SET_NOTIFY_ENABLE = 3;
-	    static int SET_SWITCH_ONOFF = 2;
-	    static int REQUEST_TIMER_SETTING = 5;
-	    static int CHANGE_PWD = 6;
-	    static int SET_PWD= 7;
-	    static int currentSetSwitch = -1;
+	    public  final static int REQUEST_SWITCH_COUNT_AND_ONOFF_STATUS = 1;
+	    public  final static int SET_NOTIFY_ENABLE = 3;
+	    public  final  static int SET_SWITCH_ONOFF = 2;
+	    public  final static int REQUEST_TIMER_SETTING = 5;
+	    public  final static int CHANGE_PWD = 6;
+	    public  final static int SET_PWD= 7;
+	    public  static int currentSetSwitch = -1;
 	    MyAdapter adapter;
 		ListView lv;
 		Button backToMain;
+		
+		byte[] commandCache;
 		
 		TextView tvBackToMain;
 		TextView switchTitle;
@@ -310,10 +313,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	            final String description){
 			
 			status = REQUEST_SWITCH_COUNT_AND_ONOFF_STATUS;
-			byte[] requestRoomSwitchQuantity = new byte[]{(byte) 0xFA,(byte) 0xF5,0x07,0x24,
-					 0x00,0x00,(byte) 0xA0,0x01,(byte) 0xCC,0x0D};
-			
-			mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestRoomSwitchQuantity);
+			SwitchUtils.requestRoomSwitchCount(mBleWrapper,currentSetCharacteristic);
+						
 		}
 		
 		public void uiFailedWriteDescription(final BluetoothGatt gatt,
@@ -353,6 +354,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			setContentView(R.layout.room_switch_list);
 			backToMain = (Button)findViewById(R.id.back_to_switch_list);
 			mDeviceAddress = this.getIntent().getExtras().getString("btdevice_address");
+			
 			backToMain.setOnClickListener(new OnClickListener() {
 				
 				@Override
@@ -371,41 +373,33 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				}
 			});
 			
-			switchTitle.setText(StoreDataInFile.readData(this, mDeviceAddress));
+			String roomTitle = StoreDataInFile.readData(this, mDeviceAddress);
+			if(roomTitle == null)
+			{
+				roomTitle = RoomSwitchList.this.getResources().getString(R.string.room_room);
+			}
+			
+			switchTitle = (TextView)findViewById(R.id.room_title);
+			switchTitle.setText(roomTitle);
 			changePassword = (TextView)findViewById(R.id.change_password);
 			changePassword.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-					LayoutInflater factory = LayoutInflater.from(RoomSwitchList.this);
-					final View changeView = factory.inflate(R.layout.change_device_name, null);
-					new AlertDialog.Builder(RoomSwitchList.this)//弹出登陆对话框
-					.setTitle("旧密码")
-					.setView(changeView)
-					.setPositiveButton("确定", new DialogInterface.OnClickListener(){
-					public void onClick(DialogInterface dialog,int whichButton){
-						//跳转至注册
-	
-						EditText et = (EditText)changeView.findViewById(R.id.change_name);	
-						String str = et.getText().toString();
-						oldPassword = inputOldPwd = str;
-						
-						byte[] requestpwd = new byte[]{(byte) 0xFA,(byte) 0xF5,0x07,0x24,
-								 0x00,0x00,(byte) 0xA3,(byte)1,(byte) 0x00,0x0D};
-						int checksum = 0;
-						for(int i = 0;i<requestpwd.length-4;i++)
+					class rightInput extends CallBackForDialog
+					{
+						public void func(String str)
 						{
-							checksum = checksum + requestpwd[i+2];
+							oldPassword = inputOldPwd = str;
+							status = CHANGE_PWD;
+							SwitchUtils.requestPwd(mBleWrapper, currentSetCharacteristic);
 						}
-						requestpwd[8] = (byte)checksum;
-						Log.v("checksum = "+ checksum,"mike");
-						status = CHANGE_PWD;
-						mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestpwd);
 					}
-					})
-					.setNegativeButton("取消", null)
-					.show();
+					String title = RoomSwitchList.this.getResources().getString(R.string.input_old_pwd);
+					String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
+					SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
+					
 				}
 			});
 			
@@ -531,38 +525,26 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						holder.switchName = (TextView)vv.findViewById(R.id.room_name);
 						
 						Log.v("edittext click","mike");
-						
-						
-						
-						LayoutInflater factory = LayoutInflater.from(RoomSwitchList.this);
-						final View changeView = factory.inflate(R.layout.change_device_name, null);
-						new AlertDialog.Builder(RoomSwitchList.this)//弹出登陆对话框
-						.setTitle("请输入新的名字")
-						.setView(changeView)
-						.setPositiveButton("确定", new DialogInterface.OnClickListener(){
-						public void onClick(DialogInterface dialog,int whichButton){
-							//跳转至注册
-		
-							EditText et = (EditText)changeView.findViewById(R.id.change_name);
-		
-							String str = et.getText().toString();
-							//holder.switchName.setText(str);
-							switchList.get(pos).put("title", str);
-							StoreDataInFile.storeData(RoomSwitchList.this, 
-									mDeviceAddress+pos,str);
-							
-							Log.v("input str is "+str+"  pos="+pos+
-									"  switchlist="+switchList.size()+"  str="+switchList.get(pos).get("title"), "mike");
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {					
-								       	adapter.notifyDataSetChanged();		
-								}
-							});
+						class rightInput extends CallBackForDialog
+						{
+							public void func(String str)
+							{
+								holder.switchName.setText(str);
+								switchList.get(pos).put("title", str);
+								StoreDataInFile.storeData(RoomSwitchList.this, 
+										mDeviceAddress+pos,str);
+								runOnUiThread(new Runnable() {
+									@Override
+									public void run() {					
+									       	adapter.notifyDataSetChanged();		
+									}
+								});
+							}
 						}
-						})
-						.setNegativeButton("取消", null)
-						.show();
+						String title = RoomSwitchList.this.getResources().getString(R.string.change_room_name);
+						String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
+						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,5,10,new rightInput(),SwitchUtils.INPUT_ROOM_SWITCH_NAME);
+						
 					}
 				});
 				}
@@ -615,55 +597,17 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						{
 							onoff = 0;
 						}
-						Log.v("set onoff "+ onoff, "mike");
-						byte[] setSwitch = new byte[]{0};
-						int index = position+1;
-						switch(index)
-						{
-						case 1:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)1,
-									(byte) onoff,0,0,0,0,0,0,0,0,0x0d};
-							break;
-						case 2:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)2,
-									0,(byte) onoff,0,0,0,0,0,0,0,0x0d};
-							break;
-						case 3:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)3,
-									0,0,(byte) onoff,0,0,0,0,0,0,0x0d};
-							break;
-						case 4:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)4,
-									0,0,0,(byte) onoff,0,0,0,0,0,0x0d};
-							break;
-						case 5:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)5,
-									0,0,0,0,(byte) onoff,0,0,0,0,0x0d};
-							break;
-						case 6:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)6,
-									0,0,0,0,0,(byte) onoff,0,0,0,0x0d};
-							break;
-						case 7:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)7,
-									0,0,0,0,0,0,(byte) onoff,0,0,0x0d};
-							break;
-						case 8:
-							setSwitch = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0E,0x20,0x00,0x00,(byte)8,
-									0,0,0,0,0,0,0,(byte) onoff,0,0x0d};		
-							break;
-						}
-						int checksum = 0;
+//						
+//						String test = "1234";
+//						byte[] testb = SwitchUtils.myStringToBcd(test);
+//						Log.v("test+"+testb[0]+" "+testb[1], "mike");
 						
-						for(int i = 0;i<setSwitch.length-3;i++)
-						{
-							checksum = checksum + setSwitch[i+2];
-						}
-						setSwitch[15] = (byte)checksum;
-						Log.v("checksum = "+ checksum,"mike");
+						Log.v("set onoff "+ onoff, "mike");
+
 						status = SET_SWITCH_ONOFF;
+						
 						currentSetSwitch = position;
-						mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, setSwitch);
+						SwitchUtils.setOnOff(mBleWrapper, currentSetCharacteristic, (byte)onoff, position);
 //						Log.v("lv position is "+position,"mike");
 						View v = lv.getChildAt(position - lv.getFirstVisiblePosition());
 //						Log.v("v info "+ v.getTag(),"mike");
@@ -681,16 +625,6 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				return convertView;      
 				}             
 		}
-		 public void showInfo(){        
-			 new AlertDialog.Builder(this)     
-			 .setTitle("我的listview")    
-			 .setMessage("介绍...")      
-			 .setPositiveButton("确定", new DialogInterface.OnClickListener() {     
-				 @Override           
-				 public void onClick(DialogInterface dialog, int which) {    
-					 
-				 }         })         .show();               } 
-		 
   
 		
 		    byte[] byteBuffer = new byte[255];
@@ -729,6 +663,11 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    void dealData(byte[] b, int len)
 		    {
 		    	Log.v("deal data is " + (0x0ff&b[3]), "mike");
+		    	if((0x0ff&b[4]) != 0)
+		    	{
+		    		 SwitchUtils.wrongPassword(RoomSwitchList.this, REQUEST_SWITCH_COUNT_AND_ONOFF_STATUS,
+		    		    		mBleWrapper,currentSetCharacteristic);
+		    	}
 		    	switch(0x0ff&b[3])
 		    	{
 		    	case 0xA0:
@@ -736,7 +675,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    		switchList.clear();
 		    		for(int i =0;i< num;i++)
 		    		{
-		    			
+		    			Log.v("num is "+num,"mike");
 			    		Map<String, Object> map = new HashMap<String, Object>();    
 				       	map.put("switch_img", R.drawable.switch_off_des); 
 				       	
@@ -756,6 +695,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				       	switchList.add(map); 
 				       	    	
 		    		}
+		    		Log.v("switchList.size "+switchList.size(),"mike");
 		    		runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -771,56 +711,51 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    					len,0,b).sendToTarget();
 		    		break;
 		    	case 0xA3:
-		    		byte h = b[5];
-		    		byte l = b[6];
-		    		String strpwd = ""+(0x0f&(h>>4))+""+(0x0f&h)+
-		    						""+(0x0f&(l>>4))+""+(0x0f&l);
-		    		Log.v("old pwd is "+ strpwd,"mike");
+		    		final byte h = b[5];
+		    		final byte l = b[6];
+		    		String strpwd = SwitchUtils.myBcdToString(new byte[]{h,l},2);
+		    		Log.v("old pwd is "+ strpwd+"inputOldPwd "+inputOldPwd,"mike");
 		    		
 		    		if(strpwd.compareTo(inputOldPwd)== 0 && status == CHANGE_PWD)
 		    		{
-		    			LayoutInflater factory = LayoutInflater.from(RoomSwitchList.this);
-						final View changeView = factory.inflate(R.layout.change_device_name, null);
-						new AlertDialog.Builder(RoomSwitchList.this)//弹出登陆对话框
-						.setTitle("请输入新密码")
-						.setView(changeView)
-						.setPositiveButton("确定", new DialogInterface.OnClickListener(){
-						public void onClick(DialogInterface dialog,int whichButton){
-							//跳转至注册
-
-							EditText et = (EditText)changeView.findViewById(R.id.change_name);	
-							String str = et.getText().toString();
-							inputOldPwd = str;
-							
-							byte[] setpwd = new byte[]{0xFA,0xF5,0x07,0x21,	AA,BB,CC,DD,	KK	0d,};
-							int checksum = 0;
-							for(int i = 0;i<requestpwd.length-4;i++)
+		    			Log.v("another popup","mike");
+		    		 	class rightInput extends CallBackForDialog
+		    			{
+		    				public void func(String str)
+		    				{
+		    					
+		    					status = SET_PWD;
+		    					byte[] newbcd = SwitchUtils.myStringToBcd(str);
+		    					SwitchUtils.setNewPwd(mBleWrapper, currentSetCharacteristic, 
+		    							h, l, newbcd[0], newbcd[1]);
+		    				}
+		    			}
+		    			String title = RoomSwitchList.this.getResources().getString(R.string.input_new_pwd);
+		    			String errorHint = RoomSwitchList.this.getString(R.string.input_not_enough_length_cahrs);
+		    			SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_NEW_PASSWORD);
+		    			
+		    			
+		    		}
+		    		else
+		    		{
+		    			class rightInput extends CallBackForDialog
+						{
+							public void func(String str)
 							{
-								checksum = checksum + requestpwd[i+2];
+								oldPassword = inputOldPwd = str;
+								status = CHANGE_PWD;
+								SwitchUtils.requestPwd(mBleWrapper, currentSetCharacteristic);
 							}
-							requestpwd[8] = (byte)checksum;
-							Log.v("checksum = "+ checksum,"mike");
-							status = SET_PWD;
-							mBleWrapper.writeDataToCharacteristic(currentSetCharacteristic, requestpwd);
 						}
-						})
-						.setNegativeButton("取消", null)
-						.show();
+						String title = RoomSwitchList.this.getResources().getString(R.string.input_old_pwd);
+						String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
+						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
 		    		}
 		    		
 		    	}
 		    }
 		    
-		    void stringToBCD(String s)
-		    {
-		    	byte[] org = s.getBytes("UTF-8");
-		    	byte[] out = new byte[2];
-		    	for(int i = 0;i<org.length;i++)
-		    	{
-		    		
-		    	}
-		    }
-		
+
 		    @Override  
 		    protected void onActivityResult(int requestCode, int resultCode, Intent data)  
 		    {  
@@ -856,5 +791,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		            break;  
 		        }  
 		        super.onActivityResult(requestCode, resultCode, data);  
-		    }  
+		    } 
+		    
+		    
+
 	}

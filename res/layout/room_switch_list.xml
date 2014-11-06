@@ -20,29 +20,27 @@
 	         	android:id="@+id/tv_back_to_switch_list"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:textColor="#FFFFFFFF"
+	            android:textColor="#0000ff"
 	            android:textSize="25sp" 
-	            android:text="返回"
-	            android:layout_marginLeft="40dp"
+	            android:text="@string/back_to_privous_activity"
+	            android:layout_marginLeft="35dp"
 	            android:layout_gravity="center_vertical"/>       
 	     <TextView 
-	         	android:id="@+id/switch_title"
+	         	android:id="@+id/room_title"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textColor="#FFFFFFFF"
-	            android:textSize="25sp" 
-	            android:text="返回"
-	            android:layout_marginLeft="40dp"
-	            android:layout_gravity="center_vertical"/> 
+	            android:textSize="28sp" 
+	            android:layout_gravity="center"/> 
 	     <TextView 
 	         	android:id="@+id/change_password"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:textColor="#0000ff"
 	            android:textSize="25sp" 
-	            android:text="返回"
-	            android:layout_marginLeft="40dp"
-	            android:layout_gravity="center_vertical"/> 
+	            android:text="@string/change_password"
+	            android:layout_marginRight="10dp"
+	            android:layout_gravity="center_vertical|right"/> 
     </FrameLayout>
 
  

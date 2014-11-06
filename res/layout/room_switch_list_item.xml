@@ -16,8 +16,9 @@
  	<TextView android:id="@+id/switch_name" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
-        android:text="左壁灯"
+        android:text="@string/switch_switch"
         android:textSize="25sp"
+        android:maxLength="15"
         android:textColor="#000000"
         android:layout_marginLeft="75dp" 
         android:layout_gravity="center_vertical"/>
