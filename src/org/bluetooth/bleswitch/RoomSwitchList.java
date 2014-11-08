@@ -1,6 +1,7 @@
 package org.bluetooth.bleswitch;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -9,9 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import org.bluetooth.bleswitch.PeripheralActivity.ListType;
-import org.bluetooth.bleswitch.RoomListActivity.MyAdapter;
-import org.bluetooth.bleswitch.RoomListActivity.ViewHolder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,6 +22,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -55,17 +55,18 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    public  final static int CHANGE_PWD = 6;
 	    public  final static int SET_PWD= 7;
 	    public  static int currentSetSwitch = -1;
-	    MyAdapter adapter;
+	     MyAdapter adapter;
+	    final int NOTIFY_DATASET_CHANGED = 1;
 		ListView lv;
 		Button backToMain;
 		public static String currentPassword;
 		byte[] commandCache;
-		
+		String testa = "this is test";
 		TextView tvBackToMain;
 		TextView switchTitle;
 		TextView changePassword;
-		List<Map<String, Object>> switchList = new ArrayList<Map<String, Object>>();  
-	    
+		List<Map<String, Object>> switchList;  
+	    byte[] switchStatus;
 	    public enum ListType {
 	    	GATT_SERVICES,
 	    	GATT_CHARACTERISTICS,
@@ -79,19 +80,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    private String mDeviceRSSI;
 
 	    public static BleWrapper mBleWrapper;
-	    
-//	    private TextView mDeviceNameView;
-//	    private TextView mDeviceAddressView;
-//	    private TextView mDeviceRssiView;
-//	    private TextView mDeviceStatus;
-//	    private ListView mListView;
-//	    private View     mListViewHeader;
-//	    private TextView mHeaderTitle;
-//	    private TextView mHeaderBackButton;
-//	    private ServicesListAdapter mServicesListAdapter = null;
-//	    private CharacteristicsListAdapter mCharacteristicsListAdapter = null; 
-//	    private CharacteristicDetailsAdapter mCharDetailsAdapter = null;  
-	    
+	    Handler mHandler;
+
 	    public void uiDeviceConnected(final BluetoothGatt gatt,
 				                      final BluetoothDevice device)
 	    {
@@ -242,6 +232,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    	Log.v("new value","mike");
 	    	printHexString(rawValue);
     	    handlerReceiveData(rawValue);
+    	    Log.v("adapter "+adapter.toString(),"mike adapter");
 	    	/*if(status == REQUEST_SWITCH_COUNT_AND_ONOFF_STATUS)
 	    	{
 	    		handlerReceiveData(rawValue);
@@ -272,11 +263,19 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 					if(status == SET_SWITCH_ONOFF)
 					{
 						if((Integer)switchList.get(currentSetSwitch).get("switch_onoff_status") == 0)
+						{
 							switchList.get(currentSetSwitch).put("switch_onoff_status", 255);
+							switchStatus[currentSetSwitch] = (byte) 255;
+						}
 						else
+						{
 							switchList.get(currentSetSwitch).put("switch_onoff_status", 0);
+							switchStatus[currentSetSwitch] = 0;
+						}
+						
 						adapter.notifyDataSetChanged();
 					}	
+					
 					
 					Log.v("write sucessful","mike");
 					//Toast.makeText(getApplicationContext(), "Writing to " + description + " was finished successfully!", Toast.LENGTH_LONG).show();
@@ -345,7 +344,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		@Override
 		protected void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
+			Log.v("onCreate", "mike");
 			setContentView(R.layout.room_switch_list);
+			switchList = new ArrayList<Map<String, Object>>();  
+			switchStatus = new byte[8];
 			backToMain = (Button)findViewById(R.id.back_to_switch_list);
 			mDeviceAddress = this.getIntent().getExtras().getString("btdevice_address");
 	    	currentPassword = StoreDataInFile.readData(this, mDeviceAddress+"pwd");
@@ -359,6 +361,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
 					RoomSwitchList.this.finish();
+					closeThing();
 				}
 			});
 			tvBackToMain = (TextView)findViewById(R.id.tv_back_to_switch_list);
@@ -367,7 +370,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				@Override
 				public void onClick(View v) {
 					// TODO Auto-generated method stub
-					RoomSwitchList.this.finish();
+					//RoomSwitchList.this.finish();
+					//closeThing();
+					
+					SwitchUtils.requestCurrentTime(mBleWrapper,currentSetCharacteristic,currentPassword);
 				}
 			});
 			
@@ -401,40 +407,88 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 					
 				}
 			});
-			
+			if(adapter !=null)
+			Log.v("adapter is not null 333"+adapter.toString(),"mike adapter");
 			lv = (ListView)findViewById(R.id.room_switch_list);
 		   	adapter = new MyAdapter(this); 
+		   	if(adapter == null)
+		   		Log.v("adapter is null  1","mike adapter");
+		   	else
+		   		Log.v("adapter is not null  1 "+adapter.toString(),"mike adapter");
 		   	lv.setAdapter(adapter);
 			
+		   	
+		   	mHandler = new Handler(){@Override
+		   	public void handleMessage(Message msg) {
+		   		// TODO Auto-generated method stub
+		   		super.handleMessage(msg);
+		   		switch(msg.what)
+		   		{
+			   		case NOTIFY_DATASET_CHANGED:
+			   			Log.v("adapter handler "+ adapter.toString(),"mike adapter");
+			   		break;
+		   		}
+		   	}};
 			
 			if(mBleWrapper == null) mBleWrapper = new BleWrapper(this, this);
 			
 			if(mBleWrapper.initialize() == false) {
+				Log.v("finish","mike");
 				finish();
 			}
-			
 	    	mBleWrapper.connect(mDeviceAddress);
 		}
 		
 		@Override
 		protected void onResume() {
 			super.onResume();
-			
+			Log.v("onResume","mike adapter");
+			if(adapter == null)
+		   		Log.v("onResume adapter is null  1","mike adapter");
+			else
+				Log.v("onResume adapter is not null  1","mike adapter");
 		}
 		
 		@Override
 		protected void onPause() {
 			super.onPause();
-			
+			Log.v("onPause","mike adapter");
+			if(adapter == null)
+		   		Log.v("onPause adapter is null  2","mike adapter");
+			else
+				Log.v("onPause adapter is not null  2","mike adapter");
 
 		}
 		protected void onDestroy() {
+			Log.v("OnDestry","mike");
 			super.onDestroy();
-			mBleWrapper.stopMonitoringRssiValue();
-			mBleWrapper.diconnect();
-			mBleWrapper.close();
+			
 		}
+		
+		protected void onStop() {
+			super.onStop();			
+		};
 
+		public void onBackPressed() {
+			super.onBackPressed();
+			this.finish();
+			closeThing();
+		};
+		
+		public void closeThing()
+		{
+			if(mBleWrapper != null)
+			{
+				mBleWrapper.stopMonitoringRssiValue();
+				mBleWrapper.diconnect();
+				mBleWrapper.close();
+				mBleWrapper = null;
+			}
+			//testa = null;
+			Log.v("set adapter null","mike adapter");
+			//adapter = null;
+			
+		}
 		public final class ViewHolder{        
 			public ImageView onOffSwitchDesc;        
 			public TextView switchName; 
@@ -486,28 +540,32 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				
 				if(switchList.size()>0)
 				{
-					if((Integer)switchList.get(position).get("switch_onoff_status") >0)
-					{
-						if(holder.onOffSwitchDesc !=null)
-							holder.onOffSwitchDesc.setImageResource(R.drawable.switch_on_des);
-						if(holder.switchToggle !=null)
-							holder.switchToggle.setBackgroundResource(R.drawable.switch_on);
-						
-					}
-					else
-					{
-						if(holder.onOffSwitchDesc !=null)
-							holder.onOffSwitchDesc.setImageResource(R.drawable.switch_off_des);
-						if(holder.switchToggle !=null)
-							holder.switchToggle.setBackgroundResource(R.drawable.switch_off);
-					}
-					holder.switchName = (TextView)convertView.findViewById(R.id.switch_name);
-					Log.v("set index "+position+"  "+(String)switchList.get(position).get("title"),"mike");
-					if(holder.switchName !=null)
-					{
-						
-						holder.switchName.setText((String)switchList.get(position).get("title"));
-					}
+					holder.onOffSwitchDesc.setImageResource((Integer) switchList.get(position).get("switch_img"));
+					holder.switchToggle.setBackgroundResource((Integer) switchList.get(position).get("toggle_switch"));
+					holder.switchName.setText((String)switchList.get(position).get("title"));
+					
+//					if((Integer)switchList.get(position).get("switch_onoff_status") >0)
+//					{
+//						if(holder.onOffSwitchDesc !=null)
+//							holder.onOffSwitchDesc.setImageResource(R.drawable.switch_on_des);
+//						if(holder.switchToggle !=null)
+//							holder.switchToggle.setBackgroundResource(R.drawable.switch_on);
+//						
+//					}
+//					else
+//					{
+//						if(holder.onOffSwitchDesc !=null)
+//							holder.onOffSwitchDesc.setImageResource(R.drawable.switch_off_des);
+//						if(holder.switchToggle !=null)
+//							holder.switchToggle.setBackgroundResource(R.drawable.switch_off);
+//					}
+//					holder.switchName = (TextView)convertView.findViewById(R.id.switch_name);
+//					Log.v("set index "+position+"  "+(String)switchList.get(position).get("title"),"mike");
+//					if(holder.switchName !=null)
+//					{
+//						
+//						holder.switchName.setText((String)switchList.get(position).get("title"));
+//					}
 					
 				}
 				
@@ -581,7 +639,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 					}});
 				}
 				if(holder.switchToggle!=null)
-				{holder.switchToggle.setOnClickListener(new OnClickListener(){
+				{
+					holder.switchToggle.setOnClickListener(new OnClickListener(){
 
 					@Override
 					public void onClick(View arg0) {
@@ -589,16 +648,30 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						//showInfo();
 						
 						int position = (Integer) arg0.getTag();
+						Log.v("position is "+position+ "onoff "+(Integer)switchList.get(position).get("switch_onoff_status"),"mike postion");
 						int onoff= -1;
-						if((Integer)switchList.get(position).get("switch_onoff_status") == 0)
+						if((Integer)switchList.get(position).get("switch_onoff_status") == 0)//if off,then on
 						{
-							onoff = 255;
+							Log.v("if on","mike position");
+							switchList.get(position).put("switch_img", R.drawable.switch_on_des); 
+							switchList.get(position).put("toggle_switch",R.drawable.switch_on);
+							onoff = 250;
+						//	switchList.get(position).put("switch_onoff_status",250);
+							Log.v("position is "+position+ "onoff "+(Integer)switchList.get(position).get("switch_onoff_status"),"mike postion");
+							
 						}
 						else
 						{
+							Log.v("if off","mike position");
+							switchList.get(position).put("switch_img", R.drawable.switch_off_des);
+							switchList.get(position).put("toggle_switch",R.drawable.switch_off);
+							
 							onoff = 0;
+						//	switchList.get(position).put("switch_onoff_status",0);
+							Log.v("position is "+position+ "onoff "+(Integer)switchList.get(position).get("switch_onoff_status"),"mike postion");
+							
 						}
-//						
+						adapter.notifyDataSetChanged();
 //						String test = "1234";
 //						byte[] testb = SwitchUtils.myStringToBcd(test);
 //						Log.v("test+"+testb[0]+" "+testb[1], "mike");
@@ -608,7 +681,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						status = SET_SWITCH_ONOFF;
 						
 						currentSetSwitch = position;
-						SwitchUtils.setOnOff(mBleWrapper, currentSetCharacteristic, (byte)onoff, position,currentPassword);
+						SwitchUtils.setOnOff(mBleWrapper, currentSetCharacteristic, (byte)onoff, position,currentPassword,switchStatus);
 //						Log.v("lv position is "+position,"mike");
 						View v = lv.getChildAt(position - lv.getFirstVisiblePosition());
 //						Log.v("v info "+ v.getTag(),"mike");
@@ -675,7 +748,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    void dealData(byte[] b, int len)
 		    {
 		    	Log.v("deal data is " + (0x0ff&b[3]), "mike");
-
+		    	if(adapter ==null)
+				   	Log.v("adapter is null 3","mike adapter");
+		    	//if(testa ==null)
+				   	Log.v("testa "+testa,"mike adapter");
 		    	switch(0x0ff&b[3])
 		    	{
 		    	case 0xA0:
@@ -714,10 +790,22 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    		switchList.clear();
 		    		for(int i =0;i< num;i++)
 		    		{
+		    			int sss = 0x0ff&b[6+i];
+		    			switchStatus[i] = (byte) sss;
 		    			Log.v("num is "+num,"mike");
-			    		Map<String, Object> map = new HashMap<String, Object>();    
-				       	map.put("switch_img", R.drawable.switch_off_des); 
-				       	
+			    		Map<String, Object> map = new HashMap<String, Object>();  
+			    		if(b[6+i] == 0)
+			    		{
+			    			map.put("switch_img", R.drawable.switch_off_des); 
+			    			map.put("toggle_switch",R.drawable.switch_off);
+			    			map.put("switch_onoff_status", sss);
+			    		}
+			    		else
+			    		{
+			    			map.put("switch_img", R.drawable.switch_on_des);
+			    			map.put("toggle_switch",R.drawable.switch_on);
+			    			map.put("switch_onoff_status", sss);
+			    		}
 				       	String s = StoreDataInFile.readData(RoomSwitchList.this, mDeviceAddress+i);
 				       	if(s.compareTo("")==0)
 				       	{
@@ -729,8 +817,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				       		map.put("title", s);
 				       	} 
 				       	map.put("timer_button",R.drawable.switch_timer_selected);
-				       	map.put("toggle_switch",R.drawable.switch_off);
-				       	map.put("switch_onoff_status", (0x0ff&b[6+i]));
+				       	
+				       	
 				       	switchList.add(map); 
 				       	    	
 		    		}
@@ -738,7 +826,14 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    		runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							adapter.notifyDataSetChanged();
+							if(adapter !=null)
+							{
+								adapter.notifyDataSetChanged();
+								mHandler.obtainMessage(NOTIFY_DATASET_CHANGED).sendToTarget();
+								Log.v("adapter is null 3 "+adapter.toString(),"mike adapter");
+							}
+							else
+							   	Log.v("adapter is null 3 "+adapter.toString(),"mike adapter");
 						}
 			    	});
 		    		
@@ -767,7 +862,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			    				// TODO Auto-generated method stub
 			    				super.func(s);
 			    				currentPassword = s;
-			    				SwitchUtils.requestTimerSetting(mBleWrapper, currentSetCharacteristic, currentPassword);
+			    				SwitchUtils.requestTimerSetting(mBleWrapper, currentSetCharacteristic, currentPassword,currentSetSwitch);
 			    				
 			    			}
 			    		};
@@ -785,6 +880,9 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    		if(SetSwitchTimer.mHandler!=null)
 		    			SetSwitchTimer.mHandler.obtainMessage(SetSwitchTimer.GET_TIMER_RESPONSE,
 		    					len,0,b).sendToTarget();
+		    		break;
+		    	case 0xA2:
+		    		
 		    		break;
 		    	case 0xA3:
 		    		final byte h = b[5];
@@ -851,26 +949,18 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		            if(data == null)
 		            	return;
 		            byte lightWeekBit = data.getByteExtra("lightWeekBit", (byte) 0);
-		            int lightOffHour = data.getIntExtra("lightOffHour", (byte) 0);
-		            int lightOnHour = data.getIntExtra("lightOnHour", (byte) 0);
-		            int lightOnMinutes = data.getIntExtra("lightOnMinutes", (byte) 0);
-		            int lightOffMinutes = data.getIntExtra("lightOffMinutes", (byte) 0);
-		            int switchIndex = data.getIntExtra("switch_index", (byte) 0);
+		            byte lightOffHour = (byte) data.getIntExtra("lightOffHour", (byte) 0);
+		            byte lightOnHour = (byte) data.getIntExtra("lightOnHour", (byte) 0);
+		            byte lightOnMinutes = (byte) data.getIntExtra("lightOnMinutes", (byte) 0);
+		            byte lightOffMinutes = (byte) data.getIntExtra("lightOffMinutes", (byte) 0);
+		            byte switchIndex = (byte) data.getIntExtra("switch_index", (byte) 0);
 		            
-		            Log.v("set tiem "+lightOnHour+" "+lightOnMinutes+" "+lightOffHour+" "+lightOffMinutes,"mike");
-		            byte[] setSwitchTimer = new byte[]{(byte) 0xFA,(byte) 0xF5,0x0B,0x22,0x00,0x00,
-		            		(byte) switchIndex,lightWeekBit,(byte) lightOnMinutes,
-		            		(byte) lightOnHour,(byte) lightOffMinutes,(byte) lightOffHour,0x00,	0x0d};
-		            int checksum = 0;
-		    		for(int i = 0;i<setSwitchTimer.length-4;i++)
-		    		{
-		    			checksum = checksum + setSwitchTimer[i+2];
-		    		}
-		    		setSwitchTimer[12] = (byte)checksum;
-		    		Log.v("checksum is "+ (0x0ff&checksum),"mike request");
-		    		RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
-		    		RoomSwitchList.mBleWrapper.writeDataToCharacteristic(RoomSwitchList.currentSetCharacteristic,
-		    				setSwitchTimer);
+		       	 	Log.v("set tiem "+lightOnHour+" "+lightOnMinutes+" "+lightOffHour+" "+lightOffMinutes,"mike");
+		       	 	RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
+		       	 	SwitchUtils.setSwitchTimer(mBleWrapper, currentSetCharacteristic,currentPassword,switchIndex,lightWeekBit,
+		       	 			lightOnMinutes,lightOnHour,lightOffMinutes,lightOffHour);
+					
+//
 		            break;    
 		        default:  
 		            break;  

@@ -8,6 +8,7 @@ import kankan.wheel.widget.adapters.NumericWheelAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,8 +36,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 	int lightOffHour = 0;
 	int lightOffMinutes = 0;	
 	
-	boolean isLightOnPress = false;
-	boolean isLightOffPress = false;
+	boolean lightOnOffSetChoose = true;
 	byte weekBit;
 	View v1,v2,v3,v4;
 	public static Handler mHandler;
@@ -95,10 +95,13 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				int len = msg.arg1;
 				weekBit = d[6];
 				switchIndex = 0x0ff&d[5];
-				lastOnH = lightOnHour = 0x0ff&d[8];
-				lastOnM = lightOnMinutes = 0x0ff&d[7];
-				lastOffH =lightOffHour = 0x0ff&d[10];				
-				lastOffM = lightOffMinutes = 0x0ff&d[9];
+				lastOnH = lightOnHour = 0x0ff&d[7];
+				lastOnM = lightOnMinutes = 0x0ff&d[8];
+				lastOffH =lightOffHour = 0x0ff&d[9];				
+				lastOffM = lightOffMinutes = 0x0ff&d[10];
+				
+				Log.v("lastOnH ="+lastOnH+ " lastOnM="+lastOnM+" lastOffH="+
+				lastOffH+" lastOffM="+lastOffM,"mike");
 				if((0x0ff&weekBit) == 0x0ff)
 				{
 					disableGlobalTimer();
@@ -109,13 +112,13 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					enableGlobalTimer();									
 				}
 				
-				
+				lightOnOffSetChoose = true;
 				if(timerGlobalEnable == true && enableLightOnTimer == true)
 				{
 					
-					isLightOnPress = true;
-						wheelH.setCurrentItem(lightOnHour);
-						wheelM.setCurrentItem(lightOnMinutes);					
+					
+						wheelH.setCurrentItem(lastOnH);
+						wheelM.setCurrentItem(lastOnM);					
 						tvTimeValue.setText(String.format("%02d",lightOnHour)+":"+String.format("%02d",lightOnMinutes));
 						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
 					
@@ -124,7 +127,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				}
 				else if(timerGlobalEnable == true && enableLightOnTimer == false)
 				{
-					isLightOnPress = true;
+					
 					wheelH.setCurrentItem(0);
 					wheelM.setCurrentItem(0);					
 					tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
@@ -138,7 +141,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		}};
 		RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
 
-		SwitchUtils.requestTimerSetting(RoomSwitchList.mBleWrapper,RoomSwitchList.currentSetCharacteristic,RoomSwitchList.currentPassword);
+		SwitchUtils.requestTimerSetting(RoomSwitchList.mBleWrapper,RoomSwitchList.currentSetCharacteristic,RoomSwitchList.currentPassword ,switchIndex);
 	}
 	
 	
@@ -162,13 +165,17 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		if((0x0ff&lastOnH) == 0x0ff)
 		{
 			enableLightOnTimer = false;
+			btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 		}
 		else
 		{
 			enableLightOnTimer = true;
-			hours = lightOnHour;
-			mintus = lightOnMinutes;
-			updateStatus();
+			hours = lastOnH;
+			mintus = lastOnM;
+			btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+			tvTimeValue.setText(String.format("%02d",hours)+":"+String.format("%02d",mintus));
+
+			//updateStatus();
 		}
 		
 		if((0x0ff&lastOffH) == 0x0ff)
@@ -177,10 +184,12 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		}
 		else
 		{
-			hours = lightOffHour;
-			mintus = lightOffMinutes;
+			hours = lastOffH;
+			mintus = lastOffM;
 			enableLightOffTimer = true;
-			updateStatus();
+			//btOffTime.setBackgroundColor(Color.YELLOW);
+			//btOnTime.setBackgroundColor(Color.GRAY);
+			//updateStatus();
 		}
 		for(int i =0;i<7;i++)
 		{
@@ -189,6 +198,9 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				cb[i].setChecked(true);
 			}
 		}
+		btOnTime.setBackgroundColor(Color.YELLOW);
+		btOffTime.setBackgroundColor(Color.GRAY);
+		lightOnOffSetChoose = true;
 		btEnableTimer.setBackgroundResource(R.drawable.switch_on);
 	}
 
@@ -262,7 +274,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 	   public void updateStatus()
 	   {
 		   tvTimeValue.setText(String.format("%02d",hours)+":"+String.format("%02d",mintus));
-		   if(isLightOnPress == true)
+		   if(lightOnOffSetChoose == true)
 		   {
 			   lightOnHour = hours;
 			   lightOnMinutes = mintus;
@@ -292,7 +304,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				break;
 			case R.id.save_timer_setting:
 				saveWeekBit();
-				if(isLightOnPress)
+				if(lightOnOffSetChoose)
 				{
 					lastOnH = lightOnHour;
 	                lastOnM = lightOnMinutes;
@@ -329,12 +341,14 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				
 				break;
 			case R.id.switch_on_timer:
-				isLightOnPress = true;
+				btOnTime.setBackgroundColor(Color.YELLOW);
+				btOffTime.setBackgroundColor(Color.GRAY);
+				lightOnOffSetChoose = true;
                 lastOffH = lightOffHour;
                 lastOffM = lightOffMinutes;
 				wheelH.setCurrentItem(lastOnH);
 				wheelM.setCurrentItem(lastOnM);
-				isLightOffPress = false;
+			
 				String status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_on_setting);
 				tvChoose.setText(status);
 				   Log.v("lastOffH = "+lastOffH+"lastOffM="+lastOffM,"mike");
@@ -346,12 +360,13 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				break;
 				
 			case R.id.switch_off_timer:
+				btOffTime.setBackgroundColor(Color.YELLOW);
+				btOnTime.setBackgroundColor(Color.GRAY);
 				   lastOnH = lightOnHour;
 	                lastOnM = lightOnMinutes;
-				isLightOffPress = true;
+	                lightOnOffSetChoose = false;
 				wheelH.setCurrentItem(lastOffH);
 				wheelM.setCurrentItem(lastOffM);
-				isLightOnPress = false;
 				status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_off_setting);
 				tvChoose.setText(status);
 				Log.v("lastOnH = "+lastOnH+"lastOnM="+lastOnM,"mike");
@@ -375,17 +390,22 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				break;
 			case R.id.enable_light_on_off:
 				Log.v("enable on off","mike ");
-				if(isLightOnPress)
+				if(lightOnOffSetChoose)
 				{
 					
-					if(enableLightOnTimer == true)
+					if(enableLightOnTimer == false)
 					{
 						Log.v("enable on off 1","mike ");
-						wheelH.setCurrentItem(lightOnHour);
-						wheelM.setCurrentItem(lightOnMinutes);					
-						tvTimeValue.setText(String.format("%02d",lightOnHour)+":"+String.format("%02d",lightOnMinutes));
-						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
-						enableLightOnTimer = false;
+						wheelH.setCurrentItem(lastOnH);
+						wheelM.setCurrentItem(lastOnM);		
+						if(lastOnH == 0xff)
+						{
+							lastOnH = 0;
+							lastOnM = 0;
+						}
+						tvTimeValue.setText(String.format("%02d",lastOnH)+":"+String.format("%02d",lastOnM));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+						enableLightOnTimer = true;
 					}
 					else
 					{
@@ -393,22 +413,27 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 						wheelH.setCurrentItem(0);
 						wheelM.setCurrentItem(0);					
 						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
-						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
-						enableLightOnTimer = true;
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+						enableLightOnTimer = false;
 					}					
 					
 				}
 					
 				else
 				{
-					if(enableLightOffTimer == true)
+					if(enableLightOffTimer == false)
 					{
 						Log.v("enable on off 3","mike ");
-						wheelH.setCurrentItem(lightOffHour);
-						wheelM.setCurrentItem(lightOffMinutes);					
-						tvTimeValue.setText(String.format("%02d",lightOffHour)+":"+String.format("%02d",lightOffMinutes));
-						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
-						enableLightOffTimer = false;
+						wheelH.setCurrentItem(lastOffH);
+						wheelM.setCurrentItem(lastOffM);
+						if(lastOffH == 0xff)
+						{
+							lastOffH = 0;
+							lastOffM = 0;
+						}
+						tvTimeValue.setText(String.format("%02d",lastOffH)+":"+String.format("%02d",lastOffM));
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
+						enableLightOffTimer = true;
 					}
 					else
 					{
@@ -416,8 +441,8 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 						wheelH.setCurrentItem(0);
 						wheelM.setCurrentItem(0);					
 						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
-						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
-						enableLightOffTimer = true;
+						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+						enableLightOffTimer = false;
 					}				
 				}
 				break;
