@@ -16,7 +16,7 @@
  	<TextView android:id="@+id/switch_name" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
-        android:text="@string/switch_switch"
+        android:text="@string/mydefaultname"
         android:textSize="25sp"
         android:maxLength="15"
         android:textColor="#000000"

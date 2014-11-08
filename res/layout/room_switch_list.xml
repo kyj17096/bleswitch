@@ -9,22 +9,27 @@
 	    android:layout_width="fill_parent" 
 	    android:layout_height="60dp"
 	    android:background="#54a91b">
-	   
-	     <Button android:id="@+id/back_to_switch_list"
-	            android:layout_width="18dp"
-	            android:layout_height="30dp"
-	            android:layout_marginLeft="10dp"
-	            android:layout_gravity="center_vertical" 
-	            android:background="@drawable/left_arraw"/>
-	     <TextView 
-	         	android:id="@+id/tv_back_to_switch_list"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:textColor="#0000ff"
-	            android:textSize="25sp" 
-	            android:text="@string/back_to_privous_activity"
-	            android:layout_marginLeft="35dp"
-	            android:layout_gravity="center_vertical"/>       
+	   	<LinearLayout
+	   	    android:id="@+id/back_back"
+	   	    android:orientation="horizontal" 
+	   	    android:layout_height="60dp"
+	    	android:layout_width="100dp">
+		     <Button 
+		            android:layout_width="18dp"
+		            android:layout_height="30dp"
+		            android:layout_marginLeft="10dp"
+		            android:layout_gravity="center_vertical" 
+		            android:background="@drawable/left_arraw"/>
+		     <TextView 
+		         	
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:textColor="#0000ff"
+		            android:textSize="25sp" 
+		            android:text="@string/back_to_privous_activity"
+		            android:layout_marginLeft="5dp"
+		            android:layout_gravity="center_vertical"/>   
+	     </LinearLayout>    
 	     <TextView 
 	         	android:id="@+id/room_title"
 	            android:layout_width="wrap_content"

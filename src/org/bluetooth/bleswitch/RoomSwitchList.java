@@ -36,6 +36,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,11 +55,16 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    public  final static int REQUEST_TIMER_SETTING = 5;
 	    public  final static int CHANGE_PWD = 6;
 	    public  final static int SET_PWD= 7;
+	    public  final static int SET_PWD_1= 8;
+	    public  final static int SET_PWD_2= 9;
+	    public  final static int WRONG_INPUT_TWICE = 10;
 	    public  static int currentSetSwitch = -1;
 	     MyAdapter adapter;
 	    final int NOTIFY_DATASET_CHANGED = 1;
 		ListView lv;
-		Button backToMain;
+		LinearLayout backToMain;
+		private String  inputNewPwd1,inputNewPwd2;
+		int changePwdStatus = 0;
 		public static String currentPassword;
 		byte[] commandCache;
 		String testa = "this is test";
@@ -348,7 +354,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			setContentView(R.layout.room_switch_list);
 			switchList = new ArrayList<Map<String, Object>>();  
 			switchStatus = new byte[8];
-			backToMain = (Button)findViewById(R.id.back_to_switch_list);
+			backToMain = (LinearLayout)findViewById(R.id.back_back);
 			mDeviceAddress = this.getIntent().getExtras().getString("btdevice_address");
 	    	currentPassword = StoreDataInFile.readData(this, mDeviceAddress+"pwd");
 			if(currentPassword == null || (currentPassword.compareTo("") == 0))
@@ -364,18 +370,18 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 					closeThing();
 				}
 			});
-			tvBackToMain = (TextView)findViewById(R.id.tv_back_to_switch_list);
-			tvBackToMain.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View v) {
-					// TODO Auto-generated method stub
-					//RoomSwitchList.this.finish();
-					//closeThing();
-					
-					SwitchUtils.requestCurrentTime(mBleWrapper,currentSetCharacteristic,currentPassword);
-				}
-			});
+//			tvBackToMain = (TextView)findViewById(R.id.tv_back_to_switch_list);
+//			tvBackToMain.setOnClickListener(new OnClickListener() {
+//				
+//				@Override
+//				public void onClick(View v) {
+//					// TODO Auto-generated method stub
+//					//RoomSwitchList.this.finish();
+//					//closeThing();
+//					
+//					SwitchUtils.requestCurrentTime(mBleWrapper,currentSetCharacteristic,currentPassword);
+//				}
+//			});
 			
 			String roomTitle = StoreDataInFile.readData(this, mDeviceAddress);
 			if(roomTitle == null)
@@ -399,11 +405,12 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 							oldPassword = inputOldPwd = str;
 							status = CHANGE_PWD;
 							SwitchUtils.requestPwd(mBleWrapper, currentSetCharacteristic,currentPassword);
+							
 						}
 					}
 					String title = RoomSwitchList.this.getResources().getString(R.string.input_old_pwd);
 					String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
-					SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
+					SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,"",errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
 					
 				}
 			});
@@ -419,7 +426,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			
 		   	
 		   	mHandler = new Handler(){@Override
-		   	public void handleMessage(Message msg) {
+		   	public void handleMessage(final Message msg) {
 		   		// TODO Auto-generated method stub
 		   		super.handleMessage(msg);
 		   		switch(msg.what)
@@ -427,6 +434,43 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			   		case NOTIFY_DATASET_CHANGED:
 			   			Log.v("adapter handler "+ adapter.toString(),"mike adapter");
 			   		break;
+			   		case SET_PWD_1:
+			   			class rightInput extends CallBackForDialog
+		    			{
+		    				public void func(String str)
+		    				{
+		    					inputNewPwd2 = str;
+		    					if(inputNewPwd1.compareTo(inputNewPwd2)==0)
+		    					{
+			    					currentPassword = str;
+			    					StoreDataInFile.storeData(RoomSwitchList.this, mDeviceAddress+"pwd", str);
+			    					status = SET_PWD;
+			    					byte[] oldp = SwitchUtils.myStringToBcd(inputOldPwd);
+			    					Log.v("str "+(String)msg.obj,"mike password");
+			    					byte[] newbcd = SwitchUtils.myStringToBcd(str);
+			    					SwitchUtils.setNewPwd(mBleWrapper, currentSetCharacteristic, 
+			    							oldp[0],oldp[1], newbcd[0], newbcd[1]);
+		    					}
+		    					else
+		    					{
+		    						mHandler.obtainMessage(WRONG_INPUT_TWICE).sendToTarget();
+		    					}
+		    				}
+		    			}
+		    		 	
+		    			String title = RoomSwitchList.this.getResources().getString(R.string.input_new_pwd);
+		    			String errorHint = RoomSwitchList.this.getString(R.string.input_not_enough_length_cahrs);
+		    			SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,"",errorHint,4,4,new rightInput(),SwitchUtils.INPUT_NEW_PASSWORD);
+		    			
+			   		break; 
+			   		case WRONG_INPUT_TWICE:
+			   			String mmm = RoomSwitchList.this.getResources().getString(R.string.set_new_password_twice_error);
+					    String myOk = RoomSwitchList.this.getResources().getString(R.string.my_ok);
+		    				
+						new AlertDialog.Builder(RoomSwitchList.this).setTitle(mmm)
+					    .setPositiveButton(myOk, null).show();
+						break;
+					
 		   		}
 		   	}};
 			
@@ -542,8 +586,14 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				{
 					holder.onOffSwitchDesc.setImageResource((Integer) switchList.get(position).get("switch_img"));
 					holder.switchToggle.setBackgroundResource((Integer) switchList.get(position).get("toggle_switch"));
-					holder.switchName.setText((String)switchList.get(position).get("title"));
-					
+					//holder.switchName.setText((String)switchList.get(position).get("title"));
+					holder.switchName = (TextView)convertView.findViewById(R.id.switch_name);
+					Log.v("set index "+position+"  "+(String)switchList.get(position).get("title"),"mike");
+					if(holder.switchName !=null)
+					{						
+						holder.switchName.setText((String)switchList.get(position).get("title"));
+					}
+				
 //					if((Integer)switchList.get(position).get("switch_onoff_status") >0)
 //					{
 //						if(holder.onOffSwitchDesc !=null)
@@ -582,7 +632,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						final int pos = (Integer)v.getTag();
 						View vv = lv.getChildAt(pos - lv.getFirstVisiblePosition());
 						holder.switchName = (TextView)vv.findViewById(R.id.room_name);
-						
+						String etHint = StoreDataInFile.readData(RoomSwitchList.this, mDeviceAddress+pos);//holder.switchName.getText().toString();
 						Log.v("edittext click","mike");
 						class rightInput extends CallBackForDialog
 						{
@@ -600,9 +650,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 								});
 							}
 						}
+						
 						String title = RoomSwitchList.this.getResources().getString(R.string.change_room_name);
 						String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
-						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,5,10,new rightInput(),SwitchUtils.INPUT_ROOM_SWITCH_NAME);
+						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,etHint,errorHint,1,8,new rightInput(),SwitchUtils.INPUT_ROOM_SWITCH_NAME);
 						
 					}
 				});
@@ -892,26 +943,25 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    		runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							String strpwd = SwitchUtils.myBcdToString(new byte[]{h,l},2);
+							final String strpwd = SwitchUtils.myBcdToString(new byte[]{h,l},2);
 				    		Log.v("old pwd is "+ strpwd+"inputOldPwd "+inputOldPwd,"mike");
 			    		if(strpwd.compareTo(inputOldPwd)== 0 && status == CHANGE_PWD)
 			    		{
-			    			Log.v("another popup","mike");
+			    			Log.v("first set new password","mike");
 			    		 	class rightInput extends CallBackForDialog
 			    			{
 			    				public void func(String str)
 			    				{
-			    					currentPassword = str;
-			    					StoreDataInFile.storeData(RoomSwitchList.this, mDeviceAddress+"pwd", str);
-			    					status = SET_PWD;
-			    					byte[] newbcd = SwitchUtils.myStringToBcd(str);
-			    					SwitchUtils.setNewPwd(mBleWrapper, currentSetCharacteristic, 
-			    							h, l, newbcd[0], newbcd[1]);
+			    					inputNewPwd1 = str;
+			    					Log.v("strpwd = "+strpwd,"mike password");
+			    					mHandler.obtainMessage(SET_PWD_1,strpwd).sendToTarget();
+			    					
 			    				}
 			    			}
+			    		 	changePwdStatus = SET_PWD_1;
 			    			String title = RoomSwitchList.this.getResources().getString(R.string.input_new_pwd);
 			    			String errorHint = RoomSwitchList.this.getString(R.string.input_not_enough_length_cahrs);
-			    			SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_NEW_PASSWORD);
+			    			SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,"",errorHint,4,4,new rightInput(),SwitchUtils.INPUT_NEW_PASSWORD);
 			    			
 			    			
 			    		}
@@ -927,9 +977,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 									SwitchUtils.requestPwd(mBleWrapper, currentSetCharacteristic,currentPassword);
 								}
 							}
+			    		
 							String title = RoomSwitchList.this.getResources().getString(R.string.input_old_pwd);
 							String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
-							SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
+							SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,"",errorHint,4,4,new rightInput(),SwitchUtils.INPUT_OLD_PASSWORD);
 			    		}
 		    		}
 		    		});

@@ -19,14 +19,15 @@ import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class SetSwitchTimer extends Activity implements OnClickListener{
-	Button btBack,btEnableTimer,btOnTime,btOffTime, btTimerOnOffEnable;
+	Button btEnableTimer,btOnTime,btOffTime, btTimerOnOffEnable;
 	TextView tvBack,btSave,tvTimeValue,tvChoose;
 	int shooseVaue;
 	CheckBox[] cb;
-	
+	LinearLayout btBack;
 	boolean timerGlobalEnable = false;
 	boolean enableLightOnTimer = false;
 	boolean enableLightOffTimer = false;
@@ -49,7 +50,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		setContentView(R.layout.set_timer);
 		switchIndex = getIntent().getExtras().getInt("switch_index");
 
-		 btBack = (Button)findViewById(R.id.bt_back_to_switch_list);
+		 btBack = (LinearLayout)findViewById(R.id.back_back);
 		 btBack.setOnClickListener(this);
 		 btSave = (TextView)findViewById(R.id.save_timer_setting);
 		 btSave.setOnClickListener(this);
@@ -59,9 +60,9 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		 btOnTime.setOnClickListener(this);
 		 btOffTime = (Button)findViewById(R.id.switch_off_timer);
 		 btOffTime.setOnClickListener(this);
-		 tvBack = (TextView)findViewById(R.id.tv_back_to_switch_list);
+		//tvBack = (TextView)findViewById(R.id.tv_back_to_switch_list);
 		 
-		 tvBack.setOnClickListener(this);
+		 //tvBack.setOnClickListener(this);
 		 tvTimeValue = (TextView)findViewById(R.id.switch_timer_time);
 		 btTimerOnOffEnable= (Button)findViewById(R.id.enable_light_on_off);
 		 btTimerOnOffEnable.setOnClickListener(this);
@@ -298,8 +299,7 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 			// TODO Auto-generated method stub
 			switch(v.getId())
 			{
-			case R.id.back_to_switch_list:
-			case R.id.tv_back_to_switch_list:
+			case R.id.back_back:
 				SetSwitchTimer.this.finish();
 				break;
 			case R.id.save_timer_setting:
