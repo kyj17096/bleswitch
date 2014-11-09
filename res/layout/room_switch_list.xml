@@ -27,7 +27,7 @@
 		            android:textColor="#0000ff"
 		            android:textSize="25sp" 
 		            android:text="@string/back_to_privous_activity"
-		            android:layout_marginLeft="5dp"
+		            android:layout_marginLeft="3dp"
 		            android:layout_gravity="center_vertical"/>   
 	     </LinearLayout>    
 	     <TextView 

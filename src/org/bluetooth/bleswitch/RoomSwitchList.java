@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 
 import android.app.Activity;
@@ -22,6 +23,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -58,6 +60,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    public  final static int SET_PWD_1= 8;
 	    public  final static int SET_PWD_2= 9;
 	    public  final static int WRONG_INPUT_TWICE = 10;
+	    public  final static int CONNECT_TIMER_OUT = 11;
 	    public  static int currentSetSwitch = -1;
 	     MyAdapter adapter;
 	    final int NOTIFY_DATASET_CHANGED = 1;
@@ -78,6 +81,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    	GATT_CHARACTERISTICS,
 	    	GATT_CHARACTERISTIC_DETAILS
 	    }
+	    CountDownTimer cdtimer;
+	    
 	    public static BluetoothGattCharacteristic currentSetCharacteristic;
 	    BluetoothGattCharacteristic currentNotifyCharacteristic;
 	    private ListType mListType = ListType.GATT_SERVICES;
@@ -94,6 +99,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    	runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
+					Log.v("connected","mike connect");
+					cdtimer.cancel();
 					//mDeviceStatus.setText("connected");
 					//invalidateOptionsMenu();
 					//mBleWrapper.getCharacteristicsForService(mBleWrapper.getCachedService());
@@ -108,6 +115,8 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 	    	runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
+					Log.v("disconnected","mike connect");
+					RoomSwitchList.this.finish();
 //					mDeviceStatus.setText("disconnected");
 //					mServicesListAdapter.clearList();
 //					mCharacteristicsListAdapter.clearList();
@@ -470,6 +479,9 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						new AlertDialog.Builder(RoomSwitchList.this).setTitle(mmm)
 					    .setPositiveButton(myOk, null).show();
 						break;
+			   		case CONNECT_TIMER_OUT:
+			   			closeThing();
+			   			RoomSwitchList.this.finish();
 					
 		   		}
 		   	}};
@@ -481,6 +493,22 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 				finish();
 			}
 	    	mBleWrapper.connect(mDeviceAddress);
+	    	
+	    	cdtimer = new CountDownTimer(5000, 1000) {
+				
+				@Override
+				public void onTick(long millisUntilFinished) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onFinish() {
+					// TODO Auto-generated method stub
+					
+					mHandler.obtainMessage(CONNECT_TIMER_OUT).sendToTarget();
+				}
+			};
 		}
 		
 		@Override
@@ -653,7 +681,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						
 						String title = RoomSwitchList.this.getResources().getString(R.string.change_room_name);
 						String errorHint = RoomSwitchList.this.getResources().getString(R.string.input_not_enough_length_cahrs);
-						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,etHint,errorHint,1,8,new rightInput(),SwitchUtils.INPUT_ROOM_SWITCH_NAME);
+						SwitchUtils.alertDialogForInput(RoomSwitchList.this,title,etHint,errorHint,1,5,new rightInput(),SwitchUtils.INPUT_ROOM_SWITCH_NAME);
 						
 					}
 				});

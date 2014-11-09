@@ -185,8 +185,8 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		}
 		else
 		{
-			hours = lastOffH;
-			mintus = lastOffM;
+//			hours = lastOffH;
+//			mintus = lastOffM;
 			enableLightOffTimer = true;
 			//btOffTime.setBackgroundColor(Color.YELLOW);
 			//btOnTime.setBackgroundColor(Color.GRAY);
@@ -279,13 +279,13 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		   {
 			   lightOnHour = hours;
 			   lightOnMinutes = mintus;
-			   Log.v("lightOnHour = "+lightOnHour+"lightOnMinutes="+lightOnMinutes,"mike");
+			   Log.v("lightOnHour = "+lightOnHour+"update      lightOnMinutes="+lightOnMinutes,"mike");
 		   }
 		   else
 		   {
 			   lightOffHour = hours;
 			   lightOffMinutes = mintus;
-			   Log.v("lightOffHour = "+lightOffHour+"lightOffMinutes="+lightOffMinutes,"mike");
+			   Log.v("lightOffHour = "+lightOffHour+"update     lightOffMinutes="+lightOffMinutes,"mike");
 		   }
 	   }
 	    
