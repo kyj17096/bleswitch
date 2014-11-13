@@ -20,23 +20,28 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class SetSwitchTimer extends Activity implements OnClickListener{
-	Button btEnableTimer,btOnTime,btOffTime, btTimerOnOffEnable;
-	TextView tvBack,btSave,tvTimeValue,tvChoose;
+	Button btOnTime,btOffTime, btTimerOnOffEnable;
+	TextView tvBack,btSave,tvTimeValue,tvChoose,tvSetSleepTimer;
 	int shooseVaue;
 	CheckBox[] cb;
 	LinearLayout btBack;
-	boolean timerGlobalEnable = false;
+	
 	boolean enableLightOnTimer = false;
 	boolean enableLightOffTimer = false;
-	
+	int setSleepTimerOnTime = 0;
+	int setSleepTimerOffTime = 0;	
+	int lastSetSleepTimerOnTime = 0;
+	int lastSetSleepTimerOffTime = 0;
 	int lightOnHour = 0;
 	int lightOnMinutes = 0;
 	int lightOffHour = 0;
 	int lightOffMinutes = 0;	
-	
+	private SeekBar setSleepTimer;
 	boolean lightOnOffSetChoose = true;
 	byte weekBit;
 	View v1,v2,v3,v4;
@@ -54,20 +59,44 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		 btBack.setOnClickListener(this);
 		 btSave = (TextView)findViewById(R.id.save_timer_setting);
 		 btSave.setOnClickListener(this);
-		 btEnableTimer = (Button)findViewById(R.id.switch_timer_enable);
-		 btEnableTimer.setOnClickListener(this);
+		
 		 btOnTime = (Button)findViewById(R.id.switch_on_timer);
 		 btOnTime.setOnClickListener(this);
 		 btOffTime = (Button)findViewById(R.id.switch_off_timer);
 		 btOffTime.setOnClickListener(this);
 		//tvBack = (TextView)findViewById(R.id.tv_back_to_switch_list);
-		 
+		 setSleepTimer=(SeekBar)findViewById(R.id.sb_set_sleep_timer);
 		 //tvBack.setOnClickListener(this);
 		 tvTimeValue = (TextView)findViewById(R.id.switch_timer_time);
 		 btTimerOnOffEnable= (Button)findViewById(R.id.enable_light_on_off);
 		 btTimerOnOffEnable.setOnClickListener(this);
 		 tvChoose = (TextView)findViewById(R.id.switch_timer_status);
-		 
+		 tvSetSleepTimer = (TextView)findViewById(R.id.setting_sleep_timer_value);
+		 setSleepTimer.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+	            @Override
+	            public void onStopTrackingTouch(SeekBar seekBar) {
+	            }
+
+	            @Override
+	            public void onStartTrackingTouch(SeekBar seekBar) {
+	            	
+	            }
+
+	            @Override
+	            public void onProgressChanged(SeekBar seekBar, int progress,
+	                    boolean fromUser) {
+	            	if(lightOnOffSetChoose == true)
+	            		setSleepTimerOnTime = progress;
+	            	else
+	            		setSleepTimerOffTime = progress;
+	            	tvSetSleepTimer.setText(""+progress);
+	        
+	            
+	            }
+	        });
+		 setSleepTimer.setMax(59);
+		 setSleepTimer.setProgress(lastSetSleepTimerOnTime);
 		 v1 = (View)findViewById(R.id.timer_v1);
 		 v2 = (View)findViewById(R.id.timer_v2);
 		 v3 = (View)findViewById(R.id.timer_v3);
@@ -100,7 +129,8 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				lastOnM = lightOnMinutes = 0x0ff&d[8];
 				lastOffH =lightOffHour = 0x0ff&d[9];				
 				lastOffM = lightOffMinutes = 0x0ff&d[10];
-				
+				lastSetSleepTimerOffTime = setSleepTimerOffTime = 0x0ff&d[11];
+				lastSetSleepTimerOnTime = setSleepTimerOnTime = 0x0ff&d[12];
 				Log.v("lastOnH ="+lastOnH+ " lastOnM="+lastOnM+" lastOffH="+
 				lastOffH+" lastOffM="+lastOffM,"mike");
 				if((0x0ff&weekBit) == 0x0ff)
@@ -114,23 +144,27 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				}
 				
 				lightOnOffSetChoose = true;
-				if(timerGlobalEnable == true && enableLightOnTimer == true)
+				if(enableLightOnTimer == true)
 				{
 					
 					
 						wheelH.setCurrentItem(lastOnH);
-						wheelM.setCurrentItem(lastOnM);					
+						wheelM.setCurrentItem(lastOnM);		
+						setSleepTimer.setProgress(lastSetSleepTimerOnTime);
+						tvSetSleepTimer.setText(""+lastSetSleepTimerOnTime);
 						tvTimeValue.setText(String.format("%02d",lightOnHour)+":"+String.format("%02d",lightOnMinutes));
 						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
 					
 						
 					
 				}
-				else if(timerGlobalEnable == true && enableLightOnTimer == false)
+				else if( enableLightOnTimer == false)
 				{
 					
 					wheelH.setCurrentItem(0);
-					wheelM.setCurrentItem(0);					
+					wheelM.setCurrentItem(0);	
+					setSleepTimer.setProgress(0);
+					tvSetSleepTimer.setText(""+0);
 					tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
 					btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 					
@@ -148,16 +182,15 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 	
 	public void disableGlobalTimer()
 	{
-		timerGlobalEnable = false;
+
 		v1.setVisibility(View.GONE);
 		v2.setVisibility(View.GONE);
 		v3.setVisibility(View.GONE);
 		v4.setVisibility(View.GONE);
-		btEnableTimer.setBackgroundResource(R.drawable.switch_off);
 	}
 	public void enableGlobalTimer()
 	{
-		timerGlobalEnable = true;
+
 		v1.setVisibility(View.VISIBLE);
 		v2.setVisibility(View.VISIBLE);
 		v3.setVisibility(View.VISIBLE);
@@ -202,7 +235,6 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		btOnTime.setBackgroundColor(Color.YELLOW);
 		btOffTime.setBackgroundColor(Color.GRAY);
 		lightOnOffSetChoose = true;
-		btEnableTimer.setBackgroundResource(R.drawable.switch_on);
 	}
 
 	boolean wheelScrolled = false;
@@ -308,15 +340,16 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				{
 					lastOnH = lightOnHour;
 	                lastOnM = lightOnMinutes;
+	                lastSetSleepTimerOnTime = setSleepTimerOnTime;
 				}
 				else
 				{
 	                lastOffH = lightOffHour;
 	                lastOffM = lightOffMinutes;
+	                lastSetSleepTimerOffTime = setSleepTimerOffTime;
 				}
 				Intent mIntent = new Intent(); 
-				if(timerGlobalEnable == false)
-					weekBit = (byte) 0xff;
+
 				if(!enableLightOnTimer)
 				{
 					lastOnH = 0xff;
@@ -333,7 +366,8 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 		        mIntent.putExtra("lightOnMinutes", lastOnM);  
 		        mIntent.putExtra("lightOffMinutes", lastOffM); 
 		        mIntent.putExtra("switch_index", switchIndex); 
-		        
+		        mIntent.putExtra("lastSetSleepTimerOnTime", lastSetSleepTimerOnTime); 
+		        mIntent.putExtra("lastSetSleepTimerOffTime", lastSetSleepTimerOffTime); 
 		       
 		        // 设置结果，并进行传送  
 		        this.setResult(0, mIntent); 
@@ -346,9 +380,11 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				lightOnOffSetChoose = true;
                 lastOffH = lightOffHour;
                 lastOffM = lightOffMinutes;
+                lastSetSleepTimerOffTime = setSleepTimerOffTime;
 				wheelH.setCurrentItem(lastOnH);
 				wheelM.setCurrentItem(lastOnM);
-			
+				setSleepTimer.setProgress(lastSetSleepTimerOnTime);
+				tvSetSleepTimer.setText(""+lastSetSleepTimerOnTime);
 				String status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_on_setting);
 				tvChoose.setText(status);
 				   Log.v("lastOffH = "+lastOffH+"lastOffM="+lastOffM,"mike");
@@ -364,30 +400,18 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 				btOnTime.setBackgroundColor(Color.GRAY);
 				   lastOnH = lightOnHour;
 	                lastOnM = lightOnMinutes;
+	                lastSetSleepTimerOnTime = setSleepTimerOnTime;
 	                lightOnOffSetChoose = false;
 				wheelH.setCurrentItem(lastOffH);
 				wheelM.setCurrentItem(lastOffM);
+				setSleepTimer.setProgress(lastSetSleepTimerOffTime);
+				tvSetSleepTimer.setText(""+lastSetSleepTimerOffTime);
 				status =  SetSwitchTimer.this.getResources().getString(R.string.timer_light_off_setting);
 				tvChoose.setText(status);
 				Log.v("lastOnH = "+lastOnH+"lastOnM="+lastOnM,"mike");
-				 if(enableLightOffTimer == true)
-					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_on);
-				   else
-					   btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
+
 				break;
-			case R.id.switch_timer_enable:
-				
-				if(timerGlobalEnable == true)
-				{
-					timerGlobalEnable = false;
-					disableGlobalTimer();
-				}
-				else
-				{
-					timerGlobalEnable = true;
-					enableGlobalTimer();
-				}
-				break;
+			
 			case R.id.enable_light_on_off:
 				Log.v("enable on off","mike ");
 				if(lightOnOffSetChoose)
@@ -397,7 +421,9 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					{
 						Log.v("enable on off 1","mike ");
 						wheelH.setCurrentItem(lastOnH);
-						wheelM.setCurrentItem(lastOnM);		
+						wheelM.setCurrentItem(lastOnM);	
+						setSleepTimer.setProgress(lastSetSleepTimerOnTime);
+						tvSetSleepTimer.setText(""+lastSetSleepTimerOnTime);
 						if(lastOnH == 0xff)
 						{
 							lastOnH = 0;
@@ -411,7 +437,9 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					{
 						Log.v("enable on off 2","mike ");
 						wheelH.setCurrentItem(0);
-						wheelM.setCurrentItem(0);					
+						wheelM.setCurrentItem(0);			
+						setSleepTimer.setProgress(0);
+						tvSetSleepTimer.setText(""+0);
 						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
 						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 						enableLightOnTimer = false;
@@ -426,6 +454,8 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 						Log.v("enable on off 3","mike ");
 						wheelH.setCurrentItem(lastOffH);
 						wheelM.setCurrentItem(lastOffM);
+						setSleepTimer.setProgress(lastSetSleepTimerOffTime);
+						tvSetSleepTimer.setText(""+lastSetSleepTimerOffTime);
 						if(lastOffH == 0xff)
 						{
 							lastOffH = 0;
@@ -439,7 +469,9 @@ public class SetSwitchTimer extends Activity implements OnClickListener{
 					{
 						Log.v("enable on off 4","mike ");
 						wheelH.setCurrentItem(0);
-						wheelM.setCurrentItem(0);					
+						wheelM.setCurrentItem(0);
+						setSleepTimer.setProgress(0);
+						tvSetSleepTimer.setText(""+0);
 						tvTimeValue.setText(String.format("%02d",0)+":"+String.format("%02d",0));
 						btTimerOnOffEnable.setBackgroundResource(R.drawable.switch_off);
 						enableLightOffTimer = false;

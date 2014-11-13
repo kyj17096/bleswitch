@@ -509,6 +509,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 					mHandler.obtainMessage(CONNECT_TIMER_OUT).sendToTarget();
 				}
 			};
+			cdtimer.start();
 		}
 		
 		@Override
@@ -909,6 +910,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 							{
 								adapter.notifyDataSetChanged();
 								mHandler.obtainMessage(NOTIFY_DATASET_CHANGED).sendToTarget();
+								
 								Log.v("adapter is null 3 "+adapter.toString(),"mike adapter");
 							}
 							else
@@ -916,6 +918,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						}
 			    	});
 		    		
+		    		cdtimer.cancel();
 		    		
 		    		{	
 		    			final Calendar c = Calendar.getInstance();   
@@ -1033,11 +1036,13 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		            byte lightOnMinutes = (byte) data.getIntExtra("lightOnMinutes", (byte) 0);
 		            byte lightOffMinutes = (byte) data.getIntExtra("lightOffMinutes", (byte) 0);
 		            byte switchIndex = (byte) data.getIntExtra("switch_index", (byte) 0);
-		            
+		            byte setSleepTimerOnTime = (byte) data.getIntExtra("lastSetSleepTimerOnTime", (byte) 0);
+		            byte setSleepTimerOffTime = (byte) data.getIntExtra("lastSetSleepTimerOffTime", (byte) 0);
+		           
 		       	 	Log.v("set tiem "+lightOnHour+" "+lightOnMinutes+" "+lightOffHour+" "+lightOffMinutes,"mike");
 		       	 	RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
 		       	 	SwitchUtils.setSwitchTimer(mBleWrapper, currentSetCharacteristic,currentPassword,switchIndex,lightWeekBit,
-		       	 			lightOnMinutes,lightOnHour,lightOffMinutes,lightOffHour);
+		       	 			lightOnMinutes,lightOnHour,lightOffMinutes,lightOffHour,setSleepTimerOnTime,setSleepTimerOffTime);
 					
 //
 		            break;    
