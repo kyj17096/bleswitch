@@ -1081,22 +1081,23 @@ containing a value of this type.
         public static final int abc_textfield_searchview_holo_light=0x7f020054;
         public static final int abc_textfield_searchview_right_holo_dark=0x7f020055;
         public static final int abc_textfield_searchview_right_holo_light=0x7f020056;
-        public static final int ic_launcher=0x7f020057;
-        public static final int info_not_selected=0x7f020058;
-        public static final int info_selected=0x7f020059;
-        public static final int left_arraw=0x7f02005a;
-        public static final int listview_line=0x7f02005b;
-        public static final int right_arraw=0x7f02005c;
-        public static final int small_arraw_not_selected=0x7f02005d;
-        public static final int small_arraw_selected=0x7f02005e;
-        public static final int switch_off=0x7f02005f;
-        public static final int switch_off_des=0x7f020060;
-        public static final int switch_on=0x7f020061;
-        public static final int switch_on_des=0x7f020062;
-        public static final int switch_timer_noselected=0x7f020063;
-        public static final int switch_timer_selected=0x7f020064;
-        public static final int wheel_bg=0x7f020065;
-        public static final int wheel_val=0x7f020066;
+        public static final int corners_bg=0x7f020057;
+        public static final int ic_launcher=0x7f020058;
+        public static final int info_not_selected=0x7f020059;
+        public static final int info_selected=0x7f02005a;
+        public static final int left_arraw=0x7f02005b;
+        public static final int listview_line=0x7f02005c;
+        public static final int right_arraw=0x7f02005d;
+        public static final int small_arraw_not_selected=0x7f02005e;
+        public static final int small_arraw_selected=0x7f02005f;
+        public static final int switch_off=0x7f020060;
+        public static final int switch_off_des=0x7f020061;
+        public static final int switch_on=0x7f020062;
+        public static final int switch_on_des=0x7f020063;
+        public static final int switch_timer_noselected=0x7f020064;
+        public static final int switch_timer_selected=0x7f020065;
+        public static final int wheel_bg=0x7f020066;
+        public static final int wheel_val=0x7f020067;
     }
     public static final class id {
         public static final int CheckBox01=0x7f050093;
@@ -1198,7 +1199,7 @@ containing a value of this type.
         public static final int room_switch_list=0x7f050082;
         public static final int room_title=0x7f050080;
         public static final int save_timer_setting=0x7f050087;
-        public static final int sb_set_sleep_timer=0x7f050088;
+        public static final int sb_set_sleep_timer=0x7f050089;
         public static final int scanning_indicator=0x7f0500a1;
         public static final int scanning_start=0x7f05009f;
         public static final int scanning_stop=0x7f0500a0;
@@ -1214,7 +1215,7 @@ containing a value of this type.
         public static final int search_switch=0x7f05007b;
         public static final int search_voice_btn=0x7f05003b;
         public static final int settimer=0x7f050085;
-        public static final int setting_sleep_timer_value=0x7f050089;
+        public static final int setting_sleep_timer_value=0x7f05008a;
         public static final int shortcut=0x7f05002e;
         public static final int showCustom=0x7f050007;
         public static final int showHome=0x7f050004;
@@ -1255,10 +1256,10 @@ containing a value of this type.
         public static final int timer_v1=0x7f05008b;
         public static final int timer_v2=0x7f05008e;
         public static final int timer_v3=0x7f050092;
-        public static final int timer_v4=0x7f05008a;
         public static final int title=0x7f05002b;
         public static final int top_action_bar=0x7f050020;
         public static final int turn_on_off_roomlight=0x7f05007e;
+        public static final int tv_delay_on_off=0x7f050088;
         public static final int up=0x7f050021;
         public static final int useLogo=0x7f050003;
         public static final int withText=0x7f05000c;
@@ -1381,7 +1382,7 @@ containing a value of this type.
         public static final int action_settings=0x7f0a000e;
         public static final int app_name=0x7f0a000d;
         public static final int back_to_privous_activity=0x7f0a0019;
-        public static final int ble_not_available=0x7f0a0030;
+        public static final int ble_not_available=0x7f0a0032;
         public static final int bt_not_open=0x7f0a0018;
         public static final int change_password=0x7f0a001a;
         public static final int change_room_name=0x7f0a0012;
@@ -1392,6 +1393,8 @@ containing a value of this type.
         public static final int day5=0x7f0a0027;
         public static final int day6=0x7f0a0028;
         public static final int day7=0x7f0a0029;
+        public static final int delay_off=0x7f0a0031;
+        public static final int delay_on=0x7f0a0030;
         public static final int hello_world=0x7f0a000f;
         public static final int input_new_pwd=0x7f0a001d;
         public static final int input_not_enough_length_cahrs=0x7f0a0013;

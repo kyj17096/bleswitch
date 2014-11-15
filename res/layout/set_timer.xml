@@ -47,31 +47,49 @@
 	            android:layout_marginRight="10dp"
 	            android:layout_gravity="center_vertical|right"/>       
     </FrameLayout>
-    <View  
+
         
-        android:layout_width="fill_parent"
-        android:layout_height="2dp"  
-        android:background="#B8B8B8"  
-        android:visibility="visible" />  
+    
 	<LinearLayout
-	    	android:orientation="vertical" 
+	    	android:orientation="horizontal" 
 		    android:layout_width="fill_parent" 
-		    android:layout_height="60dp">
+		    android:layout_height="60dp"
+		    android:layout_marginTop="5dp"
+		    android:padding="5dp"
+		    android:background="@drawable/corners_bg">
+	     
+	    <TextView 
+	           android:id="@+id/tv_delay_on_off"  
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:textColor="#000000"
+	            android:textSize="18sp" 
+	            android:text="@string/delay_on"
+	            android:layout_marginLeft="5dp"
+	            android:layout_gravity="center_vertical|left"/>  
+	    <LinearLayout			    
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:paddingLeft="10dp" 
+				>
+	      
 		    <SeekBar
 		    android:id="@+id/sb_set_sleep_timer"  
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:layout_marginTop="3dp"
-		    android:paddingLeft="10dp" 
+		    android:paddingLeft="0dp" 
 		    android:paddingRight="10dp"
 		    android:minHeight="10dp"   
 		    android:maxHeight="10dp"       
 		    />
-	 
+	 		
 			<FrameLayout
 			    
 				android:layout_width="fill_parent" 
 				android:layout_height="wrap_content"
+				android:layout_marginLeft="0dp"
 				>
 			 
 			 <TextView 
@@ -80,7 +98,7 @@
 	            android:textColor="#000000"
 	            android:textSize="15sp" 
 	            android:text="0"
-	            android:layout_marginLeft="10dp"
+	            android:layout_marginLeft="0dp"
 	            android:layout_gravity="center_vertical|left"/>  
 	         <TextView 
 	         	android:id="@+id/setting_sleep_timer_value"
@@ -100,14 +118,19 @@
 	            android:layout_marginRight="10dp"
 	            android:layout_gravity="center_vertical|right"/>  
 			</FrameLayout>	    
-		    
+		 </LinearLayout>
 	</LinearLayout>
-	    <View
-	    android:id="@+id/timer_v4"  
-        android:layout_width="fill_parent"
-        android:layout_height="2dp"  
-        android:background="#B8B8B8"  
-        android:visibility="gone" />
+
+	    
+	<LinearLayout
+    android:orientation="vertical"
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent"
+	android:layout_marginLeft="0dp"
+	android:layout_marginTop="10dp"
+	android:padding="5dp"
+	android:background="@drawable/corners_bg"
+	>
 	<LinearLayout
 	    	android:id="@+id/timer_v1"
 	    	android:orientation="horizontal" 
@@ -288,7 +311,7 @@
 		
 	</FrameLayout>
 
-
+</LinearLayout>
 
 
 </LinearLayout>

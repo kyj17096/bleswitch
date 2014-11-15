@@ -2,6 +2,7 @@ package org.bluetooth.bleswitch;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -662,6 +663,10 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						View vv = lv.getChildAt(pos - lv.getFirstVisiblePosition());
 						holder.switchName = (TextView)vv.findViewById(R.id.room_name);
 						String etHint = StoreDataInFile.readData(RoomSwitchList.this, mDeviceAddress+pos);//holder.switchName.getText().toString();
+						if(etHint == null || etHint.compareTo("") == 0)
+						{
+							RoomSwitchList.this.getResources().getString(R.string.switch_switch);
+						}
 						Log.v("edittext click","mike");
 						class rightInput extends CallBackForDialog
 						{
@@ -702,6 +707,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 						
 						Intent i = new Intent(RoomSwitchList.this,SetSwitchTimer.class);  
 						i.putExtra("switch_index", pos);
+						i.putExtra("swtich_onoff_status", switchStatus[pos]);
 						RoomSwitchList.this.startActivityForResult(i, 1);
 //						int position = (Integer) arg0.getTag();
 //						Log.v("lv position is "+position,"mike");
@@ -874,7 +880,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		    			switchStatus[i] = (byte) sss;
 		    			Log.v("num is "+num,"mike");
 			    		Map<String, Object> map = new HashMap<String, Object>();  
-			    		if(b[6+i] == 0)
+			    		if(sss == 0)
 			    		{
 			    			map.put("switch_img", R.drawable.switch_off_des); 
 			    			map.put("toggle_switch",R.drawable.switch_off);
@@ -927,7 +933,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 			             byte m = (byte) c.get(Calendar.MINUTE);  
 			             byte s = (byte) c.get(Calendar.SECOND); 
 			             Log.v("week "+week+" h"+h+" m"+m+" s"+s,"mike time");
-			    		 SwitchUtils.setTime(mBleWrapper, currentSetCharacteristic, currentPassword, week, h, m, s);
+			    		 SwitchUtils.setTime(mBleWrapper, currentSetCharacteristic, currentPassword, (byte)(week-1), h, m, s);
 		    		}
 		    		break;
 		    		
@@ -1039,7 +1045,7 @@ public class RoomSwitchList extends Activity implements BleWrapperUiCallbacks {
 		            byte setSleepTimerOnTime = (byte) data.getIntExtra("lastSetSleepTimerOnTime", (byte) 0);
 		            byte setSleepTimerOffTime = (byte) data.getIntExtra("lastSetSleepTimerOffTime", (byte) 0);
 		           
-		       	 	Log.v("set tiem "+lightOnHour+" "+lightOnMinutes+" "+lightOffHour+" "+lightOffMinutes,"mike");
+		       	 	Log.v("set tiem "+lightOnHour+" "+lightOnMinutes+" "+lightOffHour+" "+lightOffMinutes+" "+setSleepTimerOnTime+" "+setSleepTimerOffTime,"mike");
 		       	 	RoomSwitchList.status = RoomSwitchList.REQUEST_TIMER_SETTING;
 		       	 	SwitchUtils.setSwitchTimer(mBleWrapper, currentSetCharacteristic,currentPassword,switchIndex,lightWeekBit,
 		       	 			lightOnMinutes,lightOnHour,lightOffMinutes,lightOffHour,setSleepTimerOnTime,setSleepTimerOffTime);
